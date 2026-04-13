@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SysDiag — Système Expert de Diagnostic Informatique</title>
+<title>SysDiag  Système Expert de Diagnostic Informatique</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -324,7 +324,7 @@
     <div class="logo-block">
       <div class="logo-tag">// sys_expert_v1.0</div>
       <div class="logo-title">SysDiag</div>
-      <div class="logo-sub">Diagnostic de Panne Informatique — FST / Dép. SI</div>
+      <div class="logo-sub">Diagnostic de Panne Informatique  FST / Dép. SI</div>
     </div>
     <div class="header-badge">
       <div class="badge badge-cyan">Chaînage Avant</div>
@@ -347,7 +347,7 @@
 const RULES_DATA = [
   { id:"R01", category:"Alimentation", conditions:{pc_ne_demarre_pas:true,pas_de_lumiere_led:true}, conclusion:"Panne d'alimentation (câble ou bloc d'alimentation défectueux)", solution:"Vérifiez le câble d'alimentation, testez avec une autre prise.", confidence:0.95 },
   { id:"R02", category:"Alimentation", conditions:{pc_ne_demarre_pas:true,pas_de_lumiere_led:false,ventilateur_tourne:false}, conclusion:"Bloc d'alimentation défaillant ou carte mère morte", solution:"Testez avec un autre bloc d'alimentation.", confidence:0.85 },
-  { id:"R03", category:"Alimentation", conditions:{pc_s_eteint_seul:true,surchauffe:true}, conclusion:"Surchauffe — extinction thermique", solution:"Nettoyez les ventilateurs, remplacez la pâte thermique.", confidence:0.92 },
+  { id:"R03", category:"Alimentation", conditions:{pc_s_eteint_seul:true,surchauffe:true}, conclusion:"Surchauffe  extinction thermique", solution:"Nettoyez les ventilateurs, remplacez la pâte thermique.", confidence:0.92 },
   { id:"R04", category:"Écran", conditions:{ecran_noir:true,pc_fonctionne:true,voyant_ecran_allume:true}, conclusion:"Câble vidéo débranché ou carte graphique défaillante", solution:"Vérifiez le câble HDMI/VGA.", confidence:0.88 },
   { id:"R05", category:"Écran", conditions:{ecran_noir:true,pc_fonctionne:true,voyant_ecran_allume:false}, conclusion:"Écran défectueux", solution:"Vérifiez l'alimentation du moniteur.", confidence:0.90 },
   { id:"R06", category:"Écran", conditions:{ecran_pixelise:true,artefacts_visuels:true}, conclusion:"Carte graphique surchauffée", solution:"Nettoyez le ventilateur GPU.", confidence:0.87 },
@@ -696,7 +696,7 @@ function renderStart() {
       </div>
       <p class="start-desc">
         Ce système expert utilise le <strong>chaînage avant</strong> pour diagnostiquer les pannes informatiques.<br>
-        Répondez aux questions sur vos symptômes — le moteur d'inférence analysera votre configuration et proposera des diagnostics avec un niveau de confiance.
+        Répondez aux questions sur vos symptômes  le moteur d'inférence analysera votre configuration et proposera des diagnostics avec un niveau de confiance.
       </p>
       <button class="start-btn" onclick="startDiagnosis()">
         ▶ &nbsp; Lancer le diagnostic
@@ -727,7 +727,7 @@ function renderRuleManager() {
       <div style="margin-top:16px;">
         <div class="facts-title">Règles actives</div>
         <div style="max-height:200px;overflow-y:auto;">
-          ${state.rules.map(r => `<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:11px;"><span style="color:var(--accent)">${r.id}</span> — ${r.category} — ${r.conclusion.substring(0,40)}...</div>`).join('')}
+          ${state.rules.map(r => `<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:11px;"><span style="color:var(--accent)">${r.id}</span>  ${r.category}  ${r.conclusion.substring(0,40)}...</div>`).join('')}
         </div>
       </div>
     </div>
@@ -782,7 +782,7 @@ function renderDiagnose() {
 function renderFactsPanel() {
   return `
     <div class="facts-panel">
-      <div class="facts-title">// Base de faits — Session courante</div>
+      <div class="facts-title">// Base de faits  Session courante</div>
       <div class="fact-list">
         ${Object.entries(state.answers).map(([sid, val]) => {
           const cls = val==='yes'?'yes':val==='no'?'no':'unknown';

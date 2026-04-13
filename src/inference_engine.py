@@ -89,7 +89,7 @@ class InferenceEngine:
             actual = fact_base.get(symptom_id)
             if actual is None:
                 unknown_count += 1
-                matched += 0.5  # cas inconnu — crédit partiel
+                matched += 0.5  # cas inconnu   crédit partiel
             elif actual == expected_value:
                 matched += 1
             else:
@@ -174,8 +174,8 @@ class InferenceEngine:
 def run_cli_session():
     """Interface ligne de commande simple pour tester le moteur."""
     print("\n" + "="*60)
-    print("  SYSTÈME EXPERT — DIAGNOSTIC DE PANNE INFORMATIQUE")
-    print("  FST / Département SI — Fondements de l'IA")
+    print("  SYSTÈME EXPERT   DIAGNOSTIC DE PANNE INFORMATIQUE")
+    print("  FST / Département SI   Fondements de l'IA")
     print("="*60)
     print("\nRépondez aux questions par O (oui), N (non) ou ? (inconnu)\n")
 
@@ -237,7 +237,7 @@ def run_cli_session():
         print(f"\n✅ {len(diagnoses)} diagnostic(s) identifié(s) :\n")
         for i, d in enumerate(diagnoses[:3], 1):
             print(f"{'─'*50}")
-            print(f"Diagnostic #{i} — Confiance : {int(d['confidence']*100)}%")
+            print(f"Diagnostic #{i}  Confiance : {int(d['confidence']*100)}%")
             print(engine.explain(d, fb))
 
     print("\n" + "="*60)

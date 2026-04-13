@@ -20,7 +20,7 @@
       "id": "R03",
       "category": "Alimentation",
       "conditions": {"pc_s_eteint_seul": true, "surchauffe": true},
-      "conclusion": "Surchauffe — extinction thermique de protection",
+      "conclusion": "Surchauffe  extinction thermique de protection",
       "solution": "Nettoyez les ventilateurs et le dissipateur thermique. Remplacez la pâte thermique. Assurez une bonne ventilation du boîtier.",
       "confidence": 0.92
     },
@@ -76,7 +76,7 @@
       "id": "R10",
       "category": "Disque dur",
       "conditions": {"demarrage_lent": true, "bruits_cliquetis": false, "disque_presque_plein": true},
-      "conclusion": "Disque dur presque plein — performances dégradées",
+      "conclusion": "Disque dur presque plein  performances dégradées",
       "solution": "Libérez de l'espace disque. Désinstallez les programmes inutiles. Déplacez des fichiers vers un stockage externe. Videz la corbeille et les fichiers temporaires.",
       "confidence": 0.88
     },
@@ -116,7 +116,7 @@
       "id": "R15",
       "category": "Réseau",
       "conditions": {"internet_lent": true, "wifi_connecte": true, "loin_du_routeur": true},
-      "conclusion": "Signal WiFi faible — débit insuffisant",
+      "conclusion": "Signal WiFi faible  débit insuffisant",
       "solution": "Rapprochez-vous du routeur. Utilisez un répéteur WiFi ou un câble Ethernet. Changez le canal WiFi dans les paramètres du routeur.",
       "confidence": 0.85
     },
@@ -228,7 +228,7 @@
       "id": "R29",
       "category": "Batterie",
       "conditions": {"batterie_se_decharge_vite": true, "age_batterie_superieur_3ans": true},
-      "conclusion": "Batterie usée — capacité réduite avec le temps",
+      "conclusion": "Batterie usée  capacité réduite avec le temps",
       "solution": "Vérifiez l'état de la batterie (powercfg /batteryreport sur Windows). Calibrez la batterie (décharge complète puis recharge). Remplacez la batterie.",
       "confidence": 0.90
     },

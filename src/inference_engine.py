@@ -11,10 +11,13 @@ class KnowledgeBase:
     """Charge et gère la base de connaissances (règles)."""
 
     def __init__(self, rules_path: str = None):
+        # Chemin par défaut
         if rules_path is None:
             rules_path = Path(__file__).parent.parent / "data" / "rules.json"
+        # Charger le JSON
         with open(rules_path, "r", encoding="utf-8") as f:
             data = json.load(f)
+        # Index utiles
         self.rules = data["rules"]
         self.symptom_questions = {q["id"]: q for q in data["symptom_questions"]}
         self.categories = data["categories"]
@@ -48,7 +51,7 @@ class FactBase:
 
     def mark_unknown(self, symptom_id: str) -> None:
         self.unknown.add(symptom_id)
-        self.facts[symptom_id] = None  # None = inconnu
+        self.facts[symptom_id] = None
 
     def get(self, symptom_id: str):
         return self.facts.get(symptom_id)
@@ -90,13 +93,13 @@ class InferenceEngine:
             elif actual == expected_value:
                 matched += 1
             else:
-                return False, 0.0  # condition explicitement NON satisfaite → règle rejetée
+                return False, 0.0
 
         score = matched / total
         if score < 1.0:
-            return False, 0.0  # toutes les conditions doivent être satisfaites ou inconnues
+            return False, 0.0
 
-        # Réduction de confiance pour les conditions inconnues
+        # Confiance moindre
         confidence = base_confidence * (1 - 0.1 * unknown_count)
         return True, round(confidence, 2)
 
@@ -119,7 +122,7 @@ class InferenceEngine:
                     "conditions_used": list(rule["conditions"].keys())
                 })
 
-        # Tri par confiance décroissante
+        # Trier
         diagnoses.sort(key=lambda d: d["confidence"], reverse=True)
         return diagnoses
 
@@ -189,7 +192,7 @@ def run_cli_session():
         if not missing:
             break
 
-        # Poser la prochaine question disponible
+        # Prochaine question
         symptom_id = missing[0]
         if symptom_id in asked:
             break
@@ -215,13 +218,13 @@ def run_cli_session():
 
         count += 1
 
-        # Vérification intermédiaire
+        # Vérif rapide
         current_diagnoses = engine.run(fb)
         if current_diagnoses and current_diagnoses[0]["confidence"] > 0.9:
             print("\n⚡ Diagnostic de haute confiance trouvé, arrêt des questions.\n")
             break
 
-    # Résultats finaux
+    # Résultats
     diagnoses = engine.run(fb)
     print("\n" + "="*60)
     print("  RÉSULTATS DU DIAGNOSTIC")

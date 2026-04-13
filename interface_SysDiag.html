@@ -343,7 +343,7 @@
 <div class="notif" id="notif"></div>
 
 <script>
-// ======== DATA — BASE DE CONNAISSANCES ========
+// Base
 const RULES_DATA = [
   { id:"R01", category:"Alimentation", conditions:{pc_ne_demarre_pas:true,pas_de_lumiere_led:true}, conclusion:"Panne d'alimentation (câble ou bloc d'alimentation défectueux)", solution:"Vérifiez le câble d'alimentation, testez avec une autre prise.", confidence:0.95 },
   { id:"R02", category:"Alimentation", conditions:{pc_ne_demarre_pas:true,pas_de_lumiere_led:false,ventilateur_tourne:false}, conclusion:"Bloc d'alimentation défaillant ou carte mère morte", solution:"Testez avec un autre bloc d'alimentation.", confidence:0.85 },
@@ -461,7 +461,7 @@ const QUESTIONS = {
   message_erreur_dll: "Message d'erreur mentionnant un '.dll manquant' ?"
 };
 
-// ======== PRIORITÉ DES QUESTIONS (ORDRE LOGIQUE COMPLET) ========
+// Priorités
 const PRIORITY_QUESTIONS = [
   "pas_internet", "internet_lent", "wifi_connecte", "signal_wifi_visible", "autres_appareils_fonctionnent",
   "pc_ne_demarre_pas", "pas_de_lumiere_led", "ventilateur_tourne", "pc_s_eteint_seul", "surchauffe", "probleme_alim",
@@ -479,7 +479,7 @@ const PRIORITY_QUESTIONS = [
   "pilote_recent_installe", "connexion_coupe_regulierement", "loin_du_routeur", "beaucoup_appareils_connectes"
 ];
 
-// ======== STATE ========
+// État
 let state = {
   screen: 'start',
   rules: JSON.parse(JSON.stringify(RULES_DATA)),
@@ -493,7 +493,7 @@ let state = {
   showFacts: false
 };
 
-// ======== FILTRAGE INTELLIGENT ========
+// Filtrage
 const QUESTION_DEPENDENCIES = {
   "wifi_connecte": { dependsOn: "pas_internet", requiredValue: true },
   "signal_wifi_visible": { dependsOn: "pas_internet", requiredValue: true },
@@ -578,42 +578,42 @@ function getRemainingQuestions() {
   return remaining;
 }
 
-// ======== DÉTECTION D'INCOHÉRENCES ========
+// Incohérences
 function detectInconsistencies() {
   const inconsistencies = [];
   const facts = state.facts;
   
-  // 1. Contradiction démarrage vs fonctionnement
+  // Démarrage
   if (facts.pc_ne_demarre_pas === true && facts.pc_fonctionne === true) {
     inconsistencies.push("❌ Contradiction : Le PC ne démarre pas MAIS il semble fonctionner (voyants/ventilos).");
   }
   
-  // 2. Contradiction écran noir vs artefacts visuels
+  // Écran noir
   if (facts.ecran_noir === true && facts.artefacts_visuels === true) {
     inconsistencies.push("❌ Contradiction : L'écran est noir MAIS des artefacts visuels sont visibles.");
   }
   
-  // 3. Bruits de cliquetis sans lenteur
+  // Disque
   if (facts.bruits_cliquetis === true && facts.pc_lent === false) {
     inconsistencies.push("⚠️ Incohérence : Bruits de cliquetis (signe de panne disque) MAIS le PC n'est pas lent.");
   }
   
-  // 4. Surchauffe sans bruit de ventilateur
+  // Ventilation
   if (facts.surchauffe === true && facts.bruit_ventilateur_fort === false && facts.ventilateur_tourne !== false) {
     inconsistencies.push("⚠️ Incohérence : Surchauffe détectée MAIS ventilateurs silencieux → vérifiez qu'ils tournent.");
   }
   
-  // 5. Écran bleu sans redémarrage ni nouveau pilote
+  // Pilote
   if (facts.ecran_bleu_bsod === true && facts.redemarrages_aleatoires === false && facts.pilote_recent_installe === false) {
     inconsistencies.push("ℹ️ Information : Écran bleu sans redémarrage → problème probablement logiciel ou pilote.");
   }
   
-  // 6. PC gelé sans cause identifiée
+  // Gel
   if (facts.pc_gele === true && facts.application_specifique === false && facts.demarrage_lent === false) {
     inconsistencies.push("⚠️ Incohérence : PC gelé sans application spécifique ni lenteur → possible problème matériel (RAM/disque).");
   }
   
-  // 7. Connexion USB incohérente
+  // USB
   if (facts.connexion_usb === false && (state.answers.usb_non_detecte !== undefined || state.answers.autre_usb_fonctionne !== undefined)) {
     inconsistencies.push("ℹ️ Information : Aucun périphérique USB connecté, les questions sur USB ont été ignorées.");
   }
@@ -621,7 +621,7 @@ function detectInconsistencies() {
   return inconsistencies;
 }
 
-// ======== INFERENCE ENGINE ========
+// Moteur
 function runInference() {
   const diagnoses = [];
   for (const rule of state.rules) {
@@ -664,7 +664,7 @@ function evaluateRule(rule) {
   return Math.round(confidence * 100) / 100;
 }
 
-// ======== RENDER ========
+// Rendu
 function render() {
   const root = document.getElementById('app-root');
   if (state.screen === 'start') root.innerHTML = renderStart();
@@ -891,7 +891,7 @@ function renderDiagCard(diag, i) {
   `;
 }
 
-// ======== ACTIONS ========
+// Actions
 function startDiagnosis() {
   state.screen = 'diagnose';
   state.facts = {};

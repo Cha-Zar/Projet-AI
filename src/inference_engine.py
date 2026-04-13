@@ -1,4 +1,5 @@
-"""Module: inference_engine.py
+"""
+Module: inference_engine.py
 Moteur d'inférence par chaînage avant (Forward Chaining)
 Système Expert de Diagnostic de Panne Informatique
 """
@@ -7,17 +8,19 @@ import json
 from pathlib import Path
 
 
+# ======== CONSTANTES ========
+MIN_ANSWERS = 5    # ★ Minimum de réponses (OUI/NON/INCONNU) avant diagnostic
+MAX_DIAGNOSES = 5  # ★ Maximum de diagnostics retournés
+
+
 class KnowledgeBase:
     """Charge et gère la base de connaissances (règles)."""
 
     def __init__(self, rules_path: str = None):
-        # Chemin par défaut
         if rules_path is None:
             rules_path = Path(__file__).parent.parent / "data" / "rules.json"
-        # Charger le JSON
         with open(rules_path, "r", encoding="utf-8") as f:
             data = json.load(f)
-        # Index utiles
         self.rules = data["rules"]
         self.symptom_questions = {q["id"]: q for q in data["symptom_questions"]}
         self.categories = data["categories"]
@@ -51,13 +54,17 @@ class FactBase:
 
     def mark_unknown(self, symptom_id: str) -> None:
         self.unknown.add(symptom_id)
-        self.facts[symptom_id] = None
+        self.facts[symptom_id] = None  # None = inconnu
 
     def get(self, symptom_id: str):
         return self.facts.get(symptom_id)
 
     def is_known(self, symptom_id: str) -> bool:
         return symptom_id in self.facts and self.facts[symptom_id] is not None
+
+    def count_all_answers(self) -> int:
+        """★ Compte toutes les réponses données : OUI, NON et INCONNU."""
+        return len(self.facts)
 
     def clear(self) -> None:
         self.facts.clear()
@@ -76,38 +83,64 @@ class InferenceEngine:
     def evaluate_rule(self, rule: dict, fact_base: FactBase) -> tuple[bool, float]:
         """
         Évalue une règle contre la base de faits.
+
+        Logique corrigée :
+        - Contradiction explicite (réponse ≠ attendu) → rejet immédiat.
+        - Inconnu (None) → pas de rejet, confiance réduite de 10% par inconnu.
+        - ★ Si 0 réponse ferme parmi les conditions → rejet
+          (évite un diagnostic sur 100% d'inconnus).
+
         Retourne (match: bool, confidence_score: float).
-        La confiance est réduite si des conditions sont inconnues.
         """
         conditions = rule["conditions"]
-        matched = 0
-        total = len(conditions)
         unknown_count = 0
+        known_count = 0
         base_confidence = rule.get("confidence", 0.8)
 
         for symptom_id, expected_value in conditions.items():
             actual = fact_base.get(symptom_id)
+
             if actual is None:
+                # Inconnu : pénalité confiance uniquement
                 unknown_count += 1
-                matched += 0.5  # cas inconnu   crédit partiel
             elif actual == expected_value:
-                matched += 1
+                # Condition satisfaite
+                known_count += 1
             else:
+                # ★ Contradiction explicite → règle rejetée immédiatement
                 return False, 0.0
 
-        score = matched / total
-        if score < 1.0:
+        # ★ Aucune réponse ferme = tout inconnu → rejet
+        if known_count == 0:
             return False, 0.0
 
-        # Confiance moindre
+        # Réduction de confiance proportionnelle aux inconnus
         confidence = base_confidence * (1 - 0.1 * unknown_count)
         return True, round(confidence, 2)
 
-    def run(self, fact_base: FactBase) -> list[dict]:
+    def run(self, fact_base: FactBase, skip_min_check: bool = False) -> list[dict]:
         """
         Lance le chaînage avant : évalue toutes les règles.
-        Retourne la liste des diagnostics déclenchés, triés par confiance.
+
+        ★ Vérifie MIN_ANSWERS réponses (OUI/NON/INCONNU) avant de diagnostiquer.
+        ★ Retourne au maximum MAX_DIAGNOSES diagnostics triés par confiance.
+
+        Args:
+            fact_base: La base de faits courante.
+            skip_min_check: Si True, ignore la vérification du minimum.
+
+        Returns:
+            Liste des diagnostics déclenchés (max MAX_DIAGNOSES).
         """
+        # ★ Vérification du minimum de réponses
+        if not skip_min_check:
+            total_answered = fact_base.count_all_answers()
+            if total_answered < MIN_ANSWERS:
+                raise ValueError(
+                    f"Pas assez de réponses : {total_answered}/{MIN_ANSWERS}. "
+                    f"Répondez à au moins {MIN_ANSWERS} questions (OUI, NON ou INCONNU)."
+                )
+
         diagnoses = []
 
         for rule in self.kb.rules:
@@ -122,9 +155,11 @@ class InferenceEngine:
                     "conditions_used": list(rule["conditions"].keys())
                 })
 
-        # Trier
+        # Tri par confiance décroissante
         diagnoses.sort(key=lambda d: d["confidence"], reverse=True)
-        return diagnoses
+
+        # ★ Limiter aux MAX_DIAGNOSES premiers résultats
+        return diagnoses[:MAX_DIAGNOSES]
 
     def get_missing_symptoms(self, fact_base: FactBase) -> list[str]:
         """
@@ -133,12 +168,10 @@ class InferenceEngine:
         """
         known = set(fact_base.facts.keys())
         missing = set()
-
         for rule in self.kb.rules:
             for symptom_id in rule["conditions"]:
                 if symptom_id not in known:
                     missing.add(symptom_id)
-
         return list(missing)
 
     def explain(self, diagnosis: dict, fact_base: FactBase) -> str:
@@ -174,8 +207,9 @@ class InferenceEngine:
 def run_cli_session():
     """Interface ligne de commande simple pour tester le moteur."""
     print("\n" + "="*60)
-    print("  SYSTÈME EXPERT   DIAGNOSTIC DE PANNE INFORMATIQUE")
-    print("  FST / Département SI   Fondements de l'IA")
+    print("  SYSTÈME EXPERT — DIAGNOSTIC DE PANNE INFORMATIQUE")
+    print("  FST / Département SI — Fondements de l'IA")
+    print(f"  Minimum {MIN_ANSWERS} réponses · Max {MAX_DIAGNOSES} diagnostics")
     print("="*60)
     print("\nRépondez aux questions par O (oui), N (non) ou ? (inconnu)\n")
 
@@ -184,7 +218,7 @@ def run_cli_session():
     engine = InferenceEngine(kb)
 
     asked = set()
-    max_questions = 15
+    max_questions = 20
     count = 0
 
     while count < max_questions:
@@ -192,7 +226,6 @@ def run_cli_session():
         if not missing:
             break
 
-        # Prochaine question
         symptom_id = missing[0]
         if symptom_id in asked:
             break
@@ -202,8 +235,11 @@ def run_cli_session():
         if not q_info:
             continue
 
+        total_answered = fb.count_all_answers()
+        status = f"[{total_answered}/{MIN_ANSWERS}]" if total_answered < MIN_ANSWERS else f"[{total_answered} ✓]"
+
         while True:
-            answer = input(f"[Q{count+1}] {q_info['question']} (O/N/?) : ").strip().upper()
+            answer = input(f"{status} Q{count+1}. {q_info['question']} (O/N/?) : ").strip().upper()
             if answer == "O":
                 fb.assert_fact(symptom_id, True)
                 break
@@ -218,26 +254,36 @@ def run_cli_session():
 
         count += 1
 
-        # Vérif rapide
-        current_diagnoses = engine.run(fb)
-        if current_diagnoses and current_diagnoses[0]["confidence"] > 0.9:
-            print("\n⚡ Diagnostic de haute confiance trouvé, arrêt des questions.\n")
-            break
+        # Arrêt anticipé si min atteint ET diagnostic très confiant
+        if fb.count_all_answers() >= MIN_ANSWERS:
+            try:
+                current_diagnoses = engine.run(fb)
+                if current_diagnoses and current_diagnoses[0]["confidence"] > 0.9:
+                    print("\n⚡ Diagnostic de haute confiance trouvé, arrêt des questions.\n")
+                    break
+            except ValueError:
+                pass
 
-    # Résultats
-    diagnoses = engine.run(fb)
+    # Résultats finaux
     print("\n" + "="*60)
     print("  RÉSULTATS DU DIAGNOSTIC")
     print("="*60)
+
+    try:
+        diagnoses = engine.run(fb)
+    except ValueError as e:
+        print(f"\n❌ {e}")
+        print("="*60)
+        return
 
     if not diagnoses:
         print("\n❌ Aucun diagnostic ne correspond aux symptômes fournis.")
         print("   Essayez de répondre à plus de questions ou consultez un technicien.")
     else:
-        print(f"\n✅ {len(diagnoses)} diagnostic(s) identifié(s) :\n")
-        for i, d in enumerate(diagnoses[:3], 1):
+        print(f"\n✅ {len(diagnoses)} diagnostic(s) identifié(s) (max {MAX_DIAGNOSES}) :\n")
+        for i, d in enumerate(diagnoses, 1):
             print(f"{'─'*50}")
-            print(f"Diagnostic #{i}  Confiance : {int(d['confidence']*100)}%")
+            print(f"Diagnostic #{i} — Confiance : {int(d['confidence']*100)}%")
             print(engine.explain(d, fb))
 
     print("\n" + "="*60)

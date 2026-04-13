@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SysDiag — Système Expert de Diagnostic Informatique</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #1a1a25;
+    --border: #252535;
+    --accent: #00e5ff;
+    --accent2: #7c3aed;
+    --accent3: #f59e0b;
+    --danger: #ef4444;
+    --success: #10b981;
+    --text: #e2e8f0;
+    --text-muted: #64748b;
+    --text-dim: #94a3b8;
+    --mono: 'Space Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.08) 2px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .app { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 0 20px 60px; }
+
+  header {
+    padding: 40px 0 32px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 40px;
+    display: flex;
+    align-items: flex-end;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .logo-block { flex: 1 }
+
+  .logo-tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    opacity: 0.7;
+  }
+
+  .logo-title {
+    font-size: clamp(28px, 5vw, 48px);
+    font-weight: 800;
+    letter-spacing: -1px;
+    line-height: 1;
+    background: linear-gradient(135deg, var(--text) 40%, var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .logo-sub {
+    margin-top: 8px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .header-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+  }
+
+  .badge {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .badge-cyan { background: rgba(0,229,255,0.1); color: var(--accent); border: 1px solid rgba(0,229,255,0.2); }
+  .badge-purple { background: rgba(124,58,237,0.1); color: #a78bfa; border: 1px solid rgba(124,58,237,0.2); }
+
+  .progress-container { margin-bottom: 32px; }
+  .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .progress-label { font-family: var(--mono); font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px; }
+  .progress-count { font-family: var(--mono); font-size: 13px; color: var(--accent); }
+  .progress-bar { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent2), var(--accent)); border-radius: 2px; transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); width: 0%; }
+
+  .question-section { animation: fadeSlideIn 0.3s ease; }
+  @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+  .question-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    margin-bottom: 16px;
+    position: relative;
+  }
+
+  .question-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    border-radius: 12px 12px 0 0;
+  }
+
+  .question-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  .question-text {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.4;
+    color: var(--text);
+    margin-bottom: 24px;
+  }
+
+  .answer-buttons { display: flex; gap: 12px; flex-wrap: wrap; }
+  .answer-btn {
+    flex: 1;
+    min-width: 100px;
+    padding: 14px 20px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.18s;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .answer-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+  .answer-btn.yes:hover, .answer-btn.yes.active { border-color: var(--success); background: rgba(16,185,129,0.12); color: var(--success); }
+  .answer-btn.no:hover, .answer-btn.no.active { border-color: var(--danger); background: rgba(239,68,68,0.12); color: var(--danger); }
+  .answer-btn.unknown:hover, .answer-btn.unknown.active { border-color: var(--accent3); background: rgba(245,158,11,0.12); color: var(--accent3); }
+
+  .nav-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 8px; }
+  .nav-btn {
+    padding: 12px 24px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.18s;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .nav-btn.primary { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 700; }
+  .nav-btn.primary:hover { background: #00bcd4; box-shadow: 0 0 20px rgba(0,229,255,0.3); }
+
+  .facts-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+  .facts-title { font-family: var(--mono); font-size: 11px; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 14px; }
+  .fact-list { display: flex; flex-direction: column; gap: 6px; }
+  .fact-item { display: flex; align-items: flex-start; gap: 10px; font-family: var(--mono); font-size: 11px; color: var(--text-dim); padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
+  .fact-item:last-child { border-bottom: none; }
+  .fact-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 2px; }
+  .fact-dot.yes { background: var(--success); box-shadow: 0 0 6px var(--success); }
+  .fact-dot.no { background: var(--danger); box-shadow: 0 0 6px var(--danger); }
+  .fact-dot.unknown { background: var(--accent3); box-shadow: 0 0 6px var(--accent3); }
+  .filtered-badge { display: inline-block; background: rgba(245,158,11,0.15); border-radius: 4px; padding: 2px 6px; font-size: 9px; font-family: var(--mono); color: var(--accent3); margin-left: 8px; }
+
+  .results-section { animation: fadeSlideIn 0.4s ease; }
+  .results-header { margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+  .results-label { font-family: var(--mono); font-size: 11px; color: var(--accent); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 8px; }
+  .results-title { font-size: 32px; font-weight: 800; letter-spacing: -1px; }
+  .results-meta { font-family: var(--mono); font-size: 12px; color: var(--text-muted); margin-top: 8px; }
+
+  .diagnosis-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 16px;
+    transition: transform 0.2s;
+  }
+  .diagnosis-card:hover { transform: translateY(-2px); }
+  .diagnosis-card.top { border-color: rgba(0,229,255,0.3); box-shadow: 0 0 30px rgba(0,229,255,0.05); }
+  .diagnosis-header { padding: 20px 24px; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; cursor: pointer; user-select: none; }
+  .diagnosis-left { flex: 1 }
+  .diagnosis-rank { font-family: var(--mono); font-size: 10px; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
+  .diagnosis-conclusion { font-size: 16px; font-weight: 700; color: var(--text); line-height: 1.3; }
+  .diagnosis-category { font-family: var(--mono); font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+  .confidence-block { text-align: right; flex-shrink: 0; }
+  .confidence-value { font-family: var(--mono); font-size: 28px; font-weight: 700; line-height: 1; }
+  .confidence-value.high { color: var(--success); }
+  .confidence-value.med { color: var(--accent3); }
+  .confidence-value.low { color: var(--danger); }
+  .confidence-label { font-family: var(--mono); font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+  .confidence-bar { height: 3px; background: var(--border); border-radius: 2px; margin-top: 10px; width: 80px; margin-left: auto; overflow: hidden; }
+  .confidence-fill { height: 100%; border-radius: 2px; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+  .fill-high { background: var(--success); }
+  .fill-med { background: var(--accent3); }
+  .fill-low { background: var(--danger); }
+  .diagnosis-body { padding: 0 24px 24px; display: none; border-top: 1px solid var(--border); }
+  .diagnosis-body.open { display: block; }
+  .solution-block { background: var(--surface2); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; padding: 16px 18px; margin-top: 20px; margin-bottom: 16px; }
+  .solution-label { font-family: var(--mono); font-size: 10px; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; }
+  .solution-text { font-size: 14px; color: var(--text-dim); line-height: 1.7; }
+  .conditions-block { margin-top: 16px; }
+  .conditions-label { font-family: var(--mono); font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; }
+  .conditions-list { display: flex; flex-direction: column; gap: 6px; }
+  .condition-item { display: flex; align-items: flex-start; gap: 10px; font-family: var(--mono); font-size: 11px; color: var(--text-dim); padding: 4px 0; }
+  .cond-icon { flex-shrink: 0; }
+
+  .no-results { text-align: center; padding: 60px 20px; background: var(--surface); border: 1px dashed var(--border); border-radius: 12px; }
+  .no-results-icon { font-size: 48px; margin-bottom: 16px; }
+  .no-results-title { font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+  .no-results-text { font-family: var(--mono); font-size: 12px; color: var(--text-muted); max-width: 400px; margin: 0 auto 24px; line-height: 1.8; }
+
+  .start-section { text-align: center; padding: 20px 0 40px; }
+  .start-desc { font-family: var(--mono); font-size: 13px; color: var(--text-muted); max-width: 500px; margin: 0 auto 40px; line-height: 1.9; }
+  .stats-row { display: flex; justify-content: center; gap: 32px; margin-bottom: 40px; flex-wrap: wrap; }
+  .stat-item { text-align: center; }
+  .stat-value { font-family: var(--mono); font-size: 32px; font-weight: 700; color: var(--accent); }
+  .stat-label { font-family: var(--mono); font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px; margin-top: 4px; }
+  .start-btn { display: inline-flex; align-items: center; gap: 10px; padding: 16px 40px; background: var(--accent); color: #000; border: none; border-radius: 8px; font-family: var(--mono); font-size: 14px; font-weight: 700; cursor: pointer; letter-spacing: 2px; text-transform: uppercase; transition: all 0.2s; }
+  .start-btn:hover { background: #00bcd4; box-shadow: 0 0 30px rgba(0,229,255,0.4); transform: translateY(-2px); }
+
+  .rule-manager { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+  .rule-manager-title { font-family: var(--mono); font-size: 11px; color: var(--accent2); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .input-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .text-input { flex: 1; min-width: 180px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; color: var(--text); font-family: var(--mono); font-size: 12px; outline: none; transition: border-color 0.2s; }
+  .text-input:focus { border-color: var(--accent); }
+  .small-btn { padding: 10px 18px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface2); color: var(--text-dim); font-family: var(--mono); font-size: 11px; cursor: pointer; transition: all 0.18s; white-space: nowrap; letter-spacing: 1px; }
+  .small-btn:hover { border-color: var(--accent2); color: #a78bfa; }
+  .small-btn.danger:hover { border-color: var(--danger); color: var(--danger); }
+
+  .section-toggle { font-family: var(--mono); font-size: 11px; color: var(--text-muted); text-decoration: none; cursor: pointer; letter-spacing: 1px; display: flex; align-items: center; gap: 6px; margin-bottom: 16px; }
+  .section-toggle:hover { color: var(--accent); }
+
+  footer { margin-top: 60px; padding-top: 24px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+  .footer-text { font-family: var(--mono); font-size: 11px; color: var(--text-muted); }
+  .rule-count-badge { font-family: var(--mono); font-size: 11px; padding: 4px 12px; background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.2); border-radius: 4px; color: #a78bfa; }
+
+  .chevron { font-size: 12px; transition: transform 0.2s; color: var(--text-muted); }
+  .chevron.open { transform: rotate(180deg); }
+
+  .notif { position: fixed; bottom: 24px; right: 24px; padding: 14px 20px; border-radius: 8px; font-family: var(--mono); font-size: 12px; font-weight: 700; opacity: 0; transform: translateY(10px); transition: all 0.3s; z-index: 100; pointer-events: none; }
+  .notif.show { opacity: 1; transform: translateY(0); }
+  .notif.success { background: rgba(16,185,129,0.15); border: 1px solid var(--success); color: var(--success); }
+  .notif.error { background: rgba(239,68,68,0.15); border: 1px solid var(--danger); color: var(--danger); }
+
+  @media (max-width: 600px) { .answer-buttons { flex-direction: column; } .answer-btn { flex: none; } .stats-row { gap: 20px; } }
+
+  .inconsistency-box { background: rgba(245,158,11,0.1); border-left: 3px solid var(--accent3); padding: 16px; margin: 20px auto; max-width: 500px; text-align: left; border-radius: 8px; }
+  .suggestion-box { background: rgba(124,58,237,0.1); border-left: 3px solid var(--accent2); padding: 16px; margin: 20px auto; max-width: 500px; text-align: left; border-radius: 8px; }
+  .expert-box { background: rgba(0,229,255,0.1); border-left: 3px solid var(--accent); padding: 16px; margin: 20px auto; max-width: 500px; text-align: left; border-radius: 8px; }
+  .box-title { font-family: var(--mono); font-size: 11px; margin-bottom: 8px; }
+  .box-list { margin: 0; padding-left: 20px; color: var(--text-dim); font-size: 12px; line-height: 1.6; }
+  .expert-text { color: var(--text-dim); font-size: 12px; line-height: 1.6; margin: 0; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="logo-block">
+      <div class="logo-tag">// sys_expert_v1.0</div>
+      <div class="logo-title">SysDiag</div>
+      <div class="logo-sub">Diagnostic de Panne Informatique — FST / Dép. SI</div>
+    </div>
+    <div class="header-badge">
+      <div class="badge badge-cyan">Chaînage Avant</div>
+      <div class="badge badge-purple">45 Règles</div>
+    </div>
+  </header>
+
+  <div id="app-root"></div>
+
+  <footer>
+    <div class="footer-text">FST · Fondements de l'IA · Équipe 4 membres · Mohamed Lassoued</div>
+    <div class="rule-count-badge" id="rule-count-badge">45 règles chargées</div>
+  </footer>
+</div>
+
+<div class="notif" id="notif"></div>
+
+<script>
+// ======== DATA — BASE DE CONNAISSANCES ========
+const RULES_DATA = [
+  { id:"R01", category:"Alimentation", conditions:{pc_ne_demarre_pas:true,pas_de_lumiere_led:true}, conclusion:"Panne d'alimentation (câble ou bloc d'alimentation défectueux)", solution:"Vérifiez le câble d'alimentation, testez avec une autre prise.", confidence:0.95 },
+  { id:"R02", category:"Alimentation", conditions:{pc_ne_demarre_pas:true,pas_de_lumiere_led:false,ventilateur_tourne:false}, conclusion:"Bloc d'alimentation défaillant ou carte mère morte", solution:"Testez avec un autre bloc d'alimentation.", confidence:0.85 },
+  { id:"R03", category:"Alimentation", conditions:{pc_s_eteint_seul:true,surchauffe:true}, conclusion:"Surchauffe — extinction thermique", solution:"Nettoyez les ventilateurs, remplacez la pâte thermique.", confidence:0.92 },
+  { id:"R04", category:"Écran", conditions:{ecran_noir:true,pc_fonctionne:true,voyant_ecran_allume:true}, conclusion:"Câble vidéo débranché ou carte graphique défaillante", solution:"Vérifiez le câble HDMI/VGA.", confidence:0.88 },
+  { id:"R05", category:"Écran", conditions:{ecran_noir:true,pc_fonctionne:true,voyant_ecran_allume:false}, conclusion:"Écran défectueux", solution:"Vérifiez l'alimentation du moniteur.", confidence:0.90 },
+  { id:"R06", category:"Écran", conditions:{ecran_pixelise:true,artefacts_visuels:true}, conclusion:"Carte graphique surchauffée", solution:"Nettoyez le ventilateur GPU.", confidence:0.87 },
+  { id:"R07", category:"RAM", conditions:{ecran_bleu_bsod:true,redemarrages_aleatoires:true}, conclusion:"Problème de mémoire RAM", solution:"Réinsérez les barrettes RAM, lancez MemTest86.", confidence:0.83 },
+  { id:"R08", category:"RAM", conditions:{pc_lent:true,beaucoup_applications_ouvertes:false,ram_pleine:true}, conclusion:"Mémoire RAM insuffisante", solution:"Fermez les applications inutiles.", confidence:0.80 },
+  { id:"R09", category:"Disque dur", conditions:{pc_lent:true,demarrage_lent:true,bruits_cliquetis:true}, conclusion:"Disque dur en train de tomber en panne", solution:"URGENT: Sauvegardez vos données immédiatement!", confidence:0.95 },
+  { id:"R10", category:"Disque dur", conditions:{demarrage_lent:true,bruits_cliquetis:false,disque_presque_plein:true}, conclusion:"Disque dur presque plein", solution:"Libérez de l'espace disque.", confidence:0.88 },
+  { id:"R11", category:"Disque dur", conditions:{fichiers_inaccessibles:true,erreurs_lecture_ecriture:true}, conclusion:"Secteurs défectueux", solution:"Lancez CHKDSK, sauvegardez vos données.", confidence:0.90 },
+  { id:"R12", category:"Réseau", conditions:{pas_internet:true,wifi_connecte:true,autres_appareils_fonctionnent:true}, conclusion:"Problème DNS/IP", solution:"ipconfig /flushdns, changez les DNS.", confidence:0.85 },
+  { id:"R13", category:"Réseau", conditions:{pas_internet:true,wifi_connecte:false,signal_wifi_visible:true}, conclusion:"Problème d'authentification WiFi", solution:"Vérifiez le mot de passe WiFi.", confidence:0.82 },
+  { id:"R14", category:"Réseau", conditions:{pas_internet:true,wifi_connecte:false,signal_wifi_visible:false}, conclusion:"Routeur en panne ou zone morte", solution:"Redémarrez le routeur.", confidence:0.88 },
+  { id:"R15", category:"Réseau", conditions:{internet_lent:true,wifi_connecte:true,loin_du_routeur:true}, conclusion:"Signal WiFi faible", solution:"Rapprochez-vous du routeur.", confidence:0.85 },
+  { id:"R16", category:"OS", conditions:{ecran_bleu_bsod:true,redemarrages_aleatoires:false,pilote_recent_installe:true}, conclusion:"Pilote incompatible", solution:"Désinstallez le dernier pilote.", confidence:0.90 },
+  { id:"R17", category:"OS", conditions:{pc_gele:true,application_specifique:true}, conclusion:"Application instable", solution:"Forcez la fermeture, réinstallez l'application.", confidence:0.85 },
+  { id:"R18", category:"OS", conditions:{pc_gele:true,application_specifique:false,demarrage_lent:true}, conclusion:"Système corrompu ou malware", solution:"Scan antivirus, SFC /scannow.", confidence:0.82 },
+  { id:"R19", category:"OS", conditions:{erreurs_demarrage:true,windows_ne_demarre_pas:true}, conclusion:"Bootloader corrompu", solution:"Réparer le démarrage depuis USB.", confidence:0.88 },
+  { id:"R20", category:"OS", conditions:{mises_a_jour_echouent:true,espace_disque_suffisant:true}, conclusion:"Windows Update défaillant", solution:"Réinitialisez Windows Update.", confidence:0.80 },
+  { id:"R21", category:"Ventilation", conditions:{bruit_ventilateur_fort:true,surchauffe:true}, conclusion:"Ventilateur encrassé", solution:"Nettoyez les ventilateurs.", confidence:0.90 },
+  { id:"R22", category:"Ventilation", conditions:{bruit_ventilateur_fort:true,surchauffe:false}, conclusion:"Ventilateur défaillant", solution:"Remplacez le ventilateur.", confidence:0.85 },
+  { id:"R23", category:"Périph.", conditions:{clavier_ne_fonctionne_pas:true,connexion_usb:true}, conclusion:"Problème USB ou pilote", solution:"Rebranchez sur un autre port USB.", confidence:0.85 },
+  { id:"R24", category:"Périph.", conditions:{souris_ne_fonctionne_pas:true,connexion_usb:true}, conclusion:"Problème USB ou pilote", solution:"Testez sur un autre port USB.", confidence:0.85 },
+  { id:"R25", category:"Périph.", conditions:{imprimante_ne_fonctionne_pas:true,visible_dans_windows:false}, conclusion:"Imprimante non reconnue", solution:"Redémarrez le spouleur d'impression.", confidence:0.83 },
+  { id:"R26", category:"Son", conditions:{pas_de_son:true,pilotes_audio_ok:true,volume_non_mute:true}, conclusion:"Carte son défaillante", solution:"Vérifiez le périphérique par défaut.", confidence:0.82 },
+  { id:"R27", category:"Son", conditions:{pas_de_son:true,volume_non_mute:false}, conclusion:"Son coupé", solution:"Désactivez le mute.", confidence:0.99 },
+  { id:"R28", category:"Batterie", conditions:{batterie_ne_charge_pas:true,chargeur_fonctionnel:true}, conclusion:"Batterie défaillante", solution:"Testez avec un autre chargeur.", confidence:0.87 },
+  { id:"R29", category:"Batterie", conditions:{batterie_se_decharge_vite:true,age_batterie_superieur_3ans:true}, conclusion:"Batterie usée", solution:"Remplacez la batterie.", confidence:0.90 },
+  { id:"R30", category:"Démarrage", conditions:{pc_redem_en_boucle:true,apres_mise_a_jour:true}, conclusion:"Mise à jour problématique", solution:"Démarrez en mode sans échec.", confidence:0.88 },
+  { id:"R31", category:"Démarrage", conditions:{bips_au_demarrage:true,un_bip_long:true}, conclusion:"Problème RAM", solution:"Réinsérez les barrettes RAM.", confidence:0.92 },
+  { id:"R32", category:"Démarrage", conditions:{bips_au_demarrage:true,plusieurs_bips_courts:true}, conclusion:"Problème GPU", solution:"Réinsérez la carte graphique.", confidence:0.85 },
+  { id:"R33", category:"Performance", conditions:{pc_lent:true,beaucoup_applications_ouvertes:true}, conclusion:"Surcharge CPU/RAM", solution:"Fermez les applications inutiles.", confidence:0.88 },
+  { id:"R34", category:"Performance", conditions:{pc_lent:true,beaucoup_applications_ouvertes:false,virus_detecte:true}, conclusion:"Infection malware", solution:"Lancez un scan antivirus.", confidence:0.90 },
+  { id:"R35", category:"Réseau", conditions:{internet_lent:true,wifi_connecte:true,loin_du_routeur:false,beaucoup_appareils_connectes:true}, conclusion:"Bande passante saturée", solution:"Déconnectez les appareils inutilisés.", confidence:0.80 },
+  { id:"R36", category:"Écran", conditions:{ecran_scintille:true,pilote_recent_installe:true}, conclusion:"Conflit pilote graphique", solution:"Revenez à la version précédente.", confidence:0.88 },
+  { id:"R37", category:"Écran", conditions:{ecran_scintille:true,pilote_recent_installe:false}, conclusion:"Câble défectueux", solution:"Remplacez le câble vidéo.", confidence:0.83 },
+  { id:"R38", category:"OS", conditions:{applications_ne_s_ouvrent_pas:true,message_erreur_dll:true}, conclusion:"Fichiers DLL manquants", solution:"Lancez SFC /scannow.", confidence:0.87 },
+  { id:"R39", category:"Périph.", conditions:{usb_non_detecte:true,autre_usb_fonctionne:true}, conclusion:"Périphérique défaillant", solution:"Testez sur un autre PC.", confidence:0.85 },
+  { id:"R40", category:"Périph.", conditions:{usb_non_detecte:true,autre_usb_fonctionne:false}, conclusion:"Contrôleur USB défaillant", solution:"Désinstallez les contrôleurs USB.", confidence:0.82 },
+  { id:"R41", category:"Réseau", conditions:{connexion_coupe_regulierement:true,wifi_connecte:true}, conclusion:"Interférences WiFi", solution:"Changez le canal WiFi.", confidence:0.83 },
+  { id:"R42", category:"Démarrage", conditions:{message_boot_device_not_found:true}, conclusion:"Disque non détecté", solution:"Vérifiez les connexions SATA.", confidence:0.93 },
+  { id:"R43", category:"Performance", conditions:{jeux_lents:true,fps_bas:true,parametres_graphiques_eleves:true}, conclusion:"Paramètres trop élevés", solution:"Réduisez la qualité graphique.", confidence:0.88 },
+  { id:"R44", category:"OS", conditions:{bureau_ne_s_affiche_pas:true,processus_explorer_manquant:true}, conclusion:"Explorer.exe planté", solution:"Lancez explorer.exe via gestionnaire.", confidence:0.95 },
+  { id:"R45", category:"Alimentation", conditions:{pc_s_eteint_seul:true,surchauffe:false,probleme_alim:true}, conclusion:"Alimentation instable", solution:"Testez avec un autre bloc.", confidence:0.87 }
+];
+
+const QUESTIONS = {
+  pc_ne_demarre_pas: "Le PC ne démarre pas du tout (aucun signe de vie) ?",
+  pas_de_lumiere_led: "Aucune LED n'est allumée sur le boîtier ou la carte mère ?",
+  ventilateur_tourne: "Les ventilateurs tournent-ils quand vous appuyez sur le bouton marche ?",
+  pc_s_eteint_seul: "Le PC s'éteint tout seul de manière inattendue ?",
+  surchauffe: "Le PC est-il très chaud au toucher ou les ventilateurs sont-ils très bruyants ?",
+  ecran_noir: "L'écran reste noir malgré que le PC semble fonctionner ?",
+  pc_fonctionne: "Le PC semble fonctionner (voyants allumés, ventilateurs tournent) ?",
+  voyant_ecran_allume: "Le voyant LED du moniteur est-il allumé (pas en veille) ?",
+  ecran_pixelise: "Des pixels aberrants ou des artifacts graphiques apparaissent à l'écran ?",
+  artefacts_visuels: "Des artefacts visuels (lignes, formes étranges) sont-ils visibles ?",
+  ecran_scintille: "L'écran scintille ou clignote ?",
+  ecran_bleu_bsod: "Apparition d'un écran bleu (BSOD) ?",
+  redemarrages_aleatoires: "Le PC redémarre aléatoirement sans avertissement ?",
+  pc_lent: "Le PC est anormalement lent dans ses opérations ?",
+  beaucoup_applications_ouvertes: "Beaucoup d'applications sont-elles ouvertes simultanément ?",
+  ram_pleine: "Le gestionnaire des tâches indique-t-il une utilisation RAM > 90% ?",
+  demarrage_lent: "Le démarrage prend-il beaucoup plus de temps que d'habitude ?",
+  bruits_cliquetis: "Entendez-vous des bruits de cliquetis ou de grattage provenant du disque dur ?",
+  disque_presque_plein: "Le disque dur est-il rempli à plus de 90% de sa capacité ?",
+  fichiers_inaccessibles: "Des fichiers ou dossiers sont-ils devenus inaccessibles ?",
+  erreurs_lecture_ecriture: "Des erreurs de lecture/écriture apparaissent-elles ?",
+  pas_internet: "Vous n'avez pas accès à Internet ?",
+  wifi_connecte: "Êtes-vous connecté au réseau WiFi ?",
+  autres_appareils_fonctionnent: "D'autres appareils ont-ils accès à Internet sur ce même réseau ?",
+  signal_wifi_visible: "Le réseau WiFi est-il visible dans la liste des réseaux disponibles ?",
+  internet_lent: "La connexion Internet est-elle très lente ?",
+  loin_du_routeur: "Êtes-vous loin du routeur WiFi (plus de 10m) ?",
+  beaucoup_appareils_connectes: "Beaucoup d'appareils sont-ils connectés à votre WiFi ?",
+  connexion_coupe_regulierement: "La connexion WiFi se coupe-t-elle régulièrement ?",
+  pilote_recent_installe: "Avez-vous installé un nouveau pilote récemment ?",
+  pc_gele: "Le PC se fige complètement (aucune réponse) ?",
+  application_specifique: "Le problème survient-il uniquement avec une application spécifique ?",
+  erreurs_demarrage: "Des messages d'erreur apparaissent-ils au démarrage ?",
+  windows_ne_demarre_pas: "Windows refuse de démarrer complètement ?",
+  mises_a_jour_echouent: "Les mises à jour Windows échouent-elles systématiquement ?",
+  espace_disque_suffisant: "Avez-vous plus de 10 Go d'espace libre ?",
+  bruit_ventilateur_fort: "Les ventilateurs font-ils un bruit anormalement fort ?",
+  clavier_ne_fonctionne_pas: "Le clavier ne fonctionne pas ou certaines touches ne répondent pas ?",
+  connexion_usb: "Le périphérique est-il connecté en USB ?",
+  souris_ne_fonctionne_pas: "La souris ne fonctionne pas ou est erratique ?",
+  imprimante_ne_fonctionne_pas: "L'imprimante ne répond pas aux commandes d'impression ?",
+  visible_dans_windows: "L'imprimante apparaît-elle dans 'Périphériques et imprimantes' ?",
+  pas_de_son: "Pas de son du tout malgré le volume non coupé ?",
+  pilotes_audio_ok: "Les pilotes audio apparaissent-ils normalement ?",
+  volume_non_mute: "Le volume est-il activé (non muet) ?",
+  batterie_ne_charge_pas: "La batterie ne se charge pas quand le chargeur est branché ?",
+  chargeur_fonctionnel: "Le chargeur fonctionne-t-il avec un autre appareil ?",
+  batterie_se_decharge_vite: "La batterie se décharge très rapidement ?",
+  age_batterie_superieur_3ans: "La batterie a-t-elle plus de 3 ans ?",
+  pc_redem_en_boucle: "Le PC redémarre en boucle sans jamais atteindre le bureau ?",
+  apres_mise_a_jour: "Ce problème a-t-il commencé après une mise à jour Windows ?",
+  bips_au_demarrage: "Entendez-vous des bips sonores au démarrage ?",
+  un_bip_long: "Est-ce un long bip ?",
+  plusieurs_bips_courts: "Y a-t-il plusieurs bips courts successifs ?",
+  message_boot_device_not_found: "Message 'Boot device not found' ?",
+  virus_detecte: "Votre antivirus a-t-il détecté une menace récemment ?",
+  jeux_lents: "Les jeux vidéo sont-ils particulièrement lents ?",
+  fps_bas: "Le nombre d'images par seconde (FPS) est-il anormalement bas ?",
+  parametres_graphiques_eleves: "Les paramètres graphiques sont-ils réglés au maximum ?",
+  bureau_ne_s_affiche_pas: "Le bureau ne s'affiche pas après la connexion ?",
+  processus_explorer_manquant: "Dans le gestionnaire, 'explorer.exe' est-il absent ?",
+  probleme_alim: "Le bloc d'alimentation vous semble-t-il insuffisant ?",
+  usb_non_detecte: "Un périphérique USB n'est pas détecté ?",
+  autre_usb_fonctionne: "D'autres périphériques USB fonctionnent-ils ?",
+  applications_ne_s_ouvrent_pas: "Des applications refusent de s'ouvrir ?",
+  message_erreur_dll: "Message d'erreur mentionnant un '.dll manquant' ?"
+};
+
+// ======== PRIORITÉ DES QUESTIONS (ORDRE LOGIQUE COMPLET) ========
+const PRIORITY_QUESTIONS = [
+  "pas_internet", "internet_lent", "wifi_connecte", "signal_wifi_visible", "autres_appareils_fonctionnent",
+  "pc_ne_demarre_pas", "pas_de_lumiere_led", "ventilateur_tourne", "pc_s_eteint_seul", "surchauffe", "probleme_alim",
+  "ecran_noir", "pc_fonctionne", "voyant_ecran_allume", "ecran_pixelise", "artefacts_visuels", "ecran_scintille",
+  "pc_lent", "demarrage_lent", "beaucoup_applications_ouvertes", "ram_pleine", "disque_presque_plein", "jeux_lents", "fps_bas", "parametres_graphiques_eleves",
+  "bruits_cliquetis", "fichiers_inaccessibles", "erreurs_lecture_ecriture",
+  "ecran_bleu_bsod", "redemarrages_aleatoires",
+  "pc_gele", "application_specifique", "erreurs_demarrage", "windows_ne_demarre_pas", "mises_a_jour_echouent", "espace_disque_suffisant", "bureau_ne_s_affiche_pas", "processus_explorer_manquant", "applications_ne_s_ouvrent_pas", "message_erreur_dll",
+  "bruit_ventilateur_fort",
+  "clavier_ne_fonctionne_pas", "souris_ne_fonctionne_pas", "connexion_usb", "usb_non_detecte", "autre_usb_fonctionne", "imprimante_ne_fonctionne_pas", "visible_dans_windows",
+  "pas_de_son", "pilotes_audio_ok", "volume_non_mute",
+  "batterie_ne_charge_pas", "chargeur_fonctionnel", "batterie_se_decharge_vite", "age_batterie_superieur_3ans",
+  "pc_redem_en_boucle", "apres_mise_a_jour", "bips_au_demarrage", "un_bip_long", "plusieurs_bips_courts", "message_boot_device_not_found",
+  "virus_detecte",
+  "pilote_recent_installe", "connexion_coupe_regulierement", "loin_du_routeur", "beaucoup_appareils_connectes"
+];
+
+// ======== STATE ========
+let state = {
+  screen: 'start',
+  rules: JSON.parse(JSON.stringify(RULES_DATA)),
+  facts: {},
+  unknowns: new Set(),
+  questions: [],
+  currentQ: 0,
+  answers: {},
+  diagnoses: [],
+  showRuleManager: false,
+  showFacts: false
+};
+
+// ======== FILTRAGE INTELLIGENT ========
+const QUESTION_DEPENDENCIES = {
+  "wifi_connecte": { dependsOn: "pas_internet", requiredValue: true },
+  "signal_wifi_visible": { dependsOn: "pas_internet", requiredValue: true },
+  "internet_lent": { dependsOn: "pas_internet", requiredValue: false },
+  "loin_du_routeur": { dependsOn: "internet_lent", requiredValue: true },
+  "beaucoup_appareils_connectes": { dependsOn: "internet_lent", requiredValue: true },
+  "connexion_coupe_regulierement": { dependsOn: "wifi_connecte", requiredValue: true },
+  "usb_non_detecte": { dependsOn: "connexion_usb", requiredValue: true },
+  "autre_usb_fonctionne": { dependsOn: "connexion_usb", requiredValue: true },
+  "clavier_ne_fonctionne_pas": { dependsOn: "connexion_usb", requiredValue: true },
+  "souris_ne_fonctionne_pas": { dependsOn: "connexion_usb", requiredValue: true },
+  "pilotes_audio_ok": { dependsOn: "pas_de_son", requiredValue: true },
+  "volume_non_mute": { dependsOn: "pas_de_son", requiredValue: true },
+  "visible_dans_windows": { dependsOn: "imprimante_ne_fonctionne_pas", requiredValue: true },
+  "chargeur_fonctionnel": { dependsOn: "batterie_ne_charge_pas", requiredValue: true },
+  "age_batterie_superieur_3ans": { dependsOn: "batterie_se_decharge_vite", requiredValue: true },
+  "espace_disque_suffisant": { dependsOn: "mises_a_jour_echouent", requiredValue: true },
+  "processus_explorer_manquant": { dependsOn: "bureau_ne_s_affiche_pas", requiredValue: true },
+  "message_erreur_dll": { dependsOn: "applications_ne_s_ouvrent_pas", requiredValue: true },
+  "windows_ne_demarre_pas": { dependsOn: "erreurs_demarrage", requiredValue: true },
+  "message_boot_device_not_found": { dependsOn: "erreurs_demarrage", requiredValue: true },
+  "pc_redem_en_boucle": { dependsOn: "erreurs_demarrage", requiredValue: true },
+  "un_bip_long": { dependsOn: "bips_au_demarrage", requiredValue: true },
+  "plusieurs_bips_courts": { dependsOn: "bips_au_demarrage", requiredValue: true },
+  "voyant_ecran_allume": { dependsOn: "ecran_noir", requiredValue: true },
+  "ecran_pixelise": { dependsOn: "pc_fonctionne", requiredValue: true },
+  "artefacts_visuels": { dependsOn: "ecran_pixelise", requiredValue: true },
+  "ecran_scintille": { dependsOn: "pc_fonctionne", requiredValue: true },
+  "redemarrages_aleatoires": { dependsOn: "ecran_bleu_bsod", requiredValue: true },
+  "demarrage_lent": { dependsOn: "pc_lent", requiredValue: true },
+  "disque_presque_plein": { dependsOn: "pc_lent", requiredValue: true },
+  "fichiers_inaccessibles": { dependsOn: "bruits_cliquetis", requiredValue: true },
+  "erreurs_lecture_ecriture": { dependsOn: "bruits_cliquetis", requiredValue: true },
+  "ram_pleine": { dependsOn: "pc_lent", requiredValue: true },
+  "application_specifique": { dependsOn: "pc_gele", requiredValue: true }
+};
+
+const ALWAYS_ASK = [
+  "autres_appareils_fonctionnent",
+  "pc_lent",
+  "surchauffe",
+  "bruits_cliquetis"
+];
+
+function isQuestionRelevant(questionId, currentFacts) {
+  if (currentFacts[questionId] !== undefined) return false;
+  if (ALWAYS_ASK.includes(questionId)) return true;
+  const dep = QUESTION_DEPENDENCIES[questionId];
+  if (!dep) return true;
+  const depValue = currentFacts[dep.dependsOn];
+  if (depValue === undefined) return true;
+  if (depValue === dep.requiredValue) return true;
+  return false;
+}
+
+function buildQuestionList() {
+  const allSids = new Set();
+  for (const rule of state.rules) {
+    for (const sid of Object.keys(rule.conditions)) allSids.add(sid);
+  }
+  const freq = {};
+  for (const rule of state.rules) {
+    for (const sid of Object.keys(rule.conditions)) freq[sid] = (freq[sid] || 0) + 1;
+  }
+  return [...allSids].sort((a, b) => {
+    const aPriority = PRIORITY_QUESTIONS.indexOf(a);
+    const bPriority = PRIORITY_QUESTIONS.indexOf(b);
+    if (aPriority !== -1 && bPriority !== -1) return aPriority - bPriority;
+    if (aPriority !== -1) return -1;
+    if (bPriority !== -1) return 1;
+    return (freq[b] || 0) - (freq[a] || 0);
+  });
+}
+
+function getRemainingQuestions() {
+  const allQuestions = buildQuestionList();
+  const remaining = [];
+  for (const q of allQuestions) {
+    if (state.answers[q] !== undefined) continue;
+    if (isQuestionRelevant(q, state.facts)) remaining.push(q);
+  }
+  return remaining;
+}
+
+// ======== DÉTECTION D'INCOHÉRENCES ========
+function detectInconsistencies() {
+  const inconsistencies = [];
+  const facts = state.facts;
+  
+  // 1. Contradiction démarrage vs fonctionnement
+  if (facts.pc_ne_demarre_pas === true && facts.pc_fonctionne === true) {
+    inconsistencies.push("❌ Contradiction : Le PC ne démarre pas MAIS il semble fonctionner (voyants/ventilos).");
+  }
+  
+  // 2. Contradiction écran noir vs artefacts visuels
+  if (facts.ecran_noir === true && facts.artefacts_visuels === true) {
+    inconsistencies.push("❌ Contradiction : L'écran est noir MAIS des artefacts visuels sont visibles.");
+  }
+  
+  // 3. Bruits de cliquetis sans lenteur
+  if (facts.bruits_cliquetis === true && facts.pc_lent === false) {
+    inconsistencies.push("⚠️ Incohérence : Bruits de cliquetis (signe de panne disque) MAIS le PC n'est pas lent.");
+  }
+  
+  // 4. Surchauffe sans bruit de ventilateur
+  if (facts.surchauffe === true && facts.bruit_ventilateur_fort === false && facts.ventilateur_tourne !== false) {
+    inconsistencies.push("⚠️ Incohérence : Surchauffe détectée MAIS ventilateurs silencieux → vérifiez qu'ils tournent.");
+  }
+  
+  // 5. Écran bleu sans redémarrage ni nouveau pilote
+  if (facts.ecran_bleu_bsod === true && facts.redemarrages_aleatoires === false && facts.pilote_recent_installe === false) {
+    inconsistencies.push("ℹ️ Information : Écran bleu sans redémarrage → problème probablement logiciel ou pilote.");
+  }
+  
+  // 6. PC gelé sans cause identifiée
+  if (facts.pc_gele === true && facts.application_specifique === false && facts.demarrage_lent === false) {
+    inconsistencies.push("⚠️ Incohérence : PC gelé sans application spécifique ni lenteur → possible problème matériel (RAM/disque).");
+  }
+  
+  // 7. Connexion USB incohérente
+  if (facts.connexion_usb === false && (state.answers.usb_non_detecte !== undefined || state.answers.autre_usb_fonctionne !== undefined)) {
+    inconsistencies.push("ℹ️ Information : Aucun périphérique USB connecté, les questions sur USB ont été ignorées.");
+  }
+  
+  return inconsistencies;
+}
+
+// ======== INFERENCE ENGINE ========
+function runInference() {
+  const diagnoses = [];
+  for (const rule of state.rules) {
+    const result = evaluateRule(rule);
+    if (result !== null) {
+      diagnoses.push({
+        rule_id: rule.id,
+        category: rule.category,
+        conclusion: rule.conclusion,
+        solution: rule.solution,
+        confidence: result,
+        conditions: rule.conditions
+      });
+    }
+  }
+  diagnoses.sort((a,b) => b.confidence - a.confidence);
+  return diagnoses;
+}
+
+function evaluateRule(rule) {
+  const conditions = rule.conditions;
+  let matched = 0;
+  let total = Object.keys(conditions).length;
+  let unknownCount = 0;
+
+  for (const [sid, expected] of Object.entries(conditions)) {
+    const actual = state.facts[sid];
+    if (actual === undefined || actual === null) {
+      unknownCount++;
+      matched += 0.5;
+    } else if (actual === expected) {
+      matched += 1;
+    } else {
+      return null;
+    }
+  }
+
+  if (matched / total < 1.0) return null;
+  const confidence = rule.confidence * (1 - 0.1 * unknownCount);
+  return Math.round(confidence * 100) / 100;
+}
+
+// ======== RENDER ========
+function render() {
+  const root = document.getElementById('app-root');
+  if (state.screen === 'start') root.innerHTML = renderStart();
+  else if (state.screen === 'diagnose') root.innerHTML = renderDiagnose();
+  else if (state.screen === 'results') root.innerHTML = renderResults();
+  document.getElementById('rule-count-badge').textContent = `${state.rules.length} règles chargées`;
+}
+
+function renderStart() {
+  return `
+    <div class="start-section">
+      <div class="stats-row">
+        <div class="stat-item">
+          <div class="stat-value">${state.rules.length}</div>
+          <div class="stat-label">Règles</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">${Object.keys(QUESTIONS).length}</div>
+          <div class="stat-label">Symptômes</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">10</div>
+          <div class="stat-label">Catégories</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">∞</div>
+          <div class="stat-label">Diagnostics</div>
+        </div>
+      </div>
+      <p class="start-desc">
+        Ce système expert utilise le <strong>chaînage avant</strong> pour diagnostiquer les pannes informatiques.<br>
+        Répondez aux questions sur vos symptômes — le moteur d'inférence analysera votre configuration et proposera des diagnostics avec un niveau de confiance.
+      </p>
+      <button class="start-btn" onclick="startDiagnosis()">
+        ▶ &nbsp; Lancer le diagnostic
+      </button>
+    </div>
+
+    <div style="margin-top: 40px;">
+      <div class="section-toggle" onclick="toggleRuleManager()">
+        ⚙ &nbsp; Gestionnaire de règles &nbsp;<span style="color:var(--accent2)">${state.showRuleManager ? '▲ masquer' : '▼ afficher'}</span>
+      </div>
+      ${state.showRuleManager ? renderRuleManager() : ''}
+    </div>
+  `;
+}
+
+function renderRuleManager() {
+  return `
+    <div class="rule-manager">
+      <div class="rule-manager-title">⚙ Gestion dynamique des règles</div>
+      <div class="input-row" style="margin-bottom:10px;">
+        <input class="text-input" id="del-rule-id" placeholder="ID à supprimer (ex: R01)">
+        <button class="small-btn danger" onclick="deleteRule()">Supprimer</button>
+      </div>
+      <div style="margin-top:16px;">
+        <textarea class="text-input" id="new-rule-json" rows="5" style="width:100%;" placeholder='{"id":"R99","category":"Custom","conditions":{"symptom_id":true},"conclusion":"...","solution":"...","confidence":0.8}'></textarea>
+        <button class="small-btn" onclick="addRule()" style="margin-top:8px;">+ Ajouter règle</button>
+      </div>
+      <div style="margin-top:16px;">
+        <div class="facts-title">Règles actives</div>
+        <div style="max-height:200px;overflow-y:auto;">
+          ${state.rules.map(r => `<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:11px;"><span style="color:var(--accent)">${r.id}</span> — ${r.category} — ${r.conclusion.substring(0,40)}...</div>`).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderDiagnose() {
+  const remaining = getRemainingQuestions();
+  if (remaining.length === 0) {
+    runAndShowResults();
+    return "";
+  }
+  
+  if (state.currentQ >= remaining.length) {
+    state.currentQ = 0;
+  }
+  
+  const currentQ = remaining[state.currentQ];
+  if (!currentQ) return renderResults();
+  
+  const total = remaining.length;
+  const progress = (state.currentQ / total) * 100;
+  const answered = Object.keys(state.answers).length;
+  
+  return `
+    <div class="progress-container">
+      <div class="progress-header">
+        <div class="progress-label">// Progression diagnostic</div>
+        <div class="progress-count">Question ${state.currentQ + 1} / ${total}</div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${progress}%"></div></div>
+    </div>
+    <div class="question-section">
+      <div class="question-card">
+        <div class="question-num">// SYMPTÔME_${String(state.currentQ+1).padStart(3,'0')}</div>
+        <div class="question-text">${QUESTIONS[currentQ] || currentQ}</div>
+        <div class="answer-buttons">
+          <button class="answer-btn yes" onclick="answer('${currentQ}','yes')">✓ OUI</button>
+          <button class="answer-btn no" onclick="answer('${currentQ}','no')">✗ NON</button>
+          <button class="answer-btn unknown" onclick="answer('${currentQ}','unknown')">? INCONNU</button>
+        </div>
+      </div>
+      <div class="nav-row">
+        <button class="nav-btn" onclick="startOver()">↺ Recommencer</button>
+        <button class="nav-btn primary" onclick="runAndShowResults()">Diagnostiquer →</button>
+      </div>
+    </div>
+    ${answered > 0 ? `<div style="margin-top:24px;"><div class="section-toggle" onclick="toggleFacts()">📋 Faits collectés (${answered}) ${state.showFacts?'▲':'▼'}</div>${state.showFacts ? renderFactsPanel() : ''}</div>` : ''}
+  `;
+}
+
+function renderFactsPanel() {
+  return `
+    <div class="facts-panel">
+      <div class="facts-title">// Base de faits — Session courante</div>
+      <div class="fact-list">
+        ${Object.entries(state.answers).map(([sid, val]) => {
+          const cls = val==='yes'?'yes':val==='no'?'no':'unknown';
+          const icon = val==='yes'?'OUI':val==='no'?'NON':'?';
+          return `<div class="fact-item"><div class="fact-dot ${cls}"></div><span style="flex:1">${QUESTIONS[sid]||sid}</span><span style="color:var(--text-muted);">[${icon}]</span></div>`;
+        }).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function renderResults() {
+  const d = state.diagnoses;
+  const answeredCount = Object.keys(state.answers).length;
+  const inconsistencies = detectInconsistencies();
+  
+  return `
+    <div class="results-section">
+      <div class="results-header">
+        <div class="results-label">// Résultats du diagnostic</div>
+        <div class="results-title">${d.length > 0 ? `${d.length} diagnostic${d.length>1?'s':''} trouvé${d.length>1?'s':''}` : 'Aucun résultat'}</div>
+        <div class="results-meta">Basé sur ${answeredCount} symptômes · ${state.rules.length} règles</div>
+      </div>
+      ${d.length === 0 ? `
+        <div class="no-results">
+          <div class="no-results-icon">🔍</div>
+          <div class="no-results-title">Aucun diagnostic correspondant</div>
+          <div class="no-results-text">Les symptômes renseignés ne correspondent à aucune règle dans la base de connaissances.</div>
+          
+          ${inconsistencies.length > 0 ? `
+            <div class="inconsistency-box">
+              <div class="box-title" style="color: var(--accent3);">🔍 INCOHÉRENCES DÉTECTÉES</div>
+              <ul class="box-list">
+                ${inconsistencies.map(inc => `<li>${inc}</li>`).join('')}
+              </ul>
+            </div>
+          ` : ''}
+          
+          <div class="suggestion-box">
+            <div class="box-title" style="color: var(--accent2);">💡 SUGGESTIONS POUR AMÉLIORER LE DIAGNOSTIC</div>
+            <ul class="box-list">
+              <li>Vérifiez la cohérence de vos réponses (ex: un PC qui ne démarre pas ne peut pas être lent)</li>
+              <li>Répondez "INCONNU" (?) si vous n'êtes pas sûr d'un symptôme plutôt que de deviner</li>
+              <li>Certains symptômes peuvent indiquer plusieurs problèmes - soyez précis</li>
+              <li>Si le problème persiste, consultez la section "Expert" ci-dessous</li>
+            </ul>
+          </div>
+          
+          <div class="expert-box">
+            <div class="box-title" style="color: var(--accent);">🛠️ CONSEIL D'EXPERT</div>
+            <div class="expert-text">
+              Aucun diagnostic n'a pu être établi car vos réponses présentent des contradictions ou ne correspondent 
+              à aucun profil de panne connu. Voici quelques conseils :<br><br>
+              • <strong>Redémarrez votre PC</strong> - cela résout de nombreux problèmes logiciels temporaires.<br>
+              • <strong>Vérifiez les branchements</strong> (alimentation, câbles, périphériques).<br>
+              • <strong>Observez les bips ou voyants</strong> au démarrage - ils donnent des indices précieux.<br>
+              • <strong>Si le problème persiste</strong>, contactez un technicien pour une analyse matérielle approfondie.
+            </div>
+          </div>
+          
+          <div style="margin-top: 24px; display: flex; gap: 12px; justify-content: center;">
+            <button class="nav-btn" onclick="startOver()">↺ Recommencer</button>
+          </div>
+        </div>
+      ` : d.map((diag, i) => renderDiagCard(diag, i)).join('')}
+      
+      ${d.length > 0 ? `
+        <div style="margin-top:24px;display:flex;gap:12px;">
+          <button class="nav-btn" onclick="startOver()">↺ Nouveau diagnostic</button>
+        </div>
+      ` : ''}
+      ${Object.keys(state.answers).length > 0 ? `
+        <div style="margin-top:24px;">
+          <div class="section-toggle" onclick="toggleFacts()">
+            📋 &nbsp; Tous les faits collectés (${Object.keys(state.answers).length}) &nbsp;<span style="color:var(--accent2)">${state.showFacts?'▲':'▼'}</span>
+          </div>
+          ${state.showFacts ? renderFactsPanel() : ''}
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+function renderDiagCard(diag, i) {
+  const pct = Math.round(diag.confidence * 100);
+  const cls = pct >= 85 ? 'high' : pct >= 70 ? 'med' : 'low';
+  const fillCls = `fill-${cls}`;
+  return `
+    <div class="diagnosis-card ${i===0?'top':''}">
+      <div class="diagnosis-header" onclick="toggleDiagCard('card-${i}')">
+        <div><div class="diagnosis-rank">${i===0 ? '🏆 DIAGNOSTIC PRINCIPAL' : `#${i+1} DIAGNOSTIC`} · ${diag.rule_id}</div>
+        <div class="diagnosis-conclusion">${diag.conclusion}</div><div class="diagnosis-category">Catégorie : ${diag.category}</div></div>
+        <div><div class="confidence-value ${cls}">${pct}%</div><div class="confidence-label">Confiance</div><div class="confidence-bar"><div class="confidence-fill ${fillCls}" style="width:${pct}%"></div></div><div class="chevron" id="chev-${i}">▼</div></div>
+      </div>
+      <div class="diagnosis-body" id="card-${i}" ${i===0?'class="open"':''}>
+        <div class="solution-block"><div class="solution-label">💡 Solution recommandée</div><div class="solution-text">${diag.solution}</div></div>
+        <div class="conditions-block"><div class="conditions-label">🔍 Conditions vérifiées</div><div class="conditions-list">
+          ${Object.entries(diag.conditions).map(([sid, expected]) => {
+            const actual = state.facts[sid];
+            const icon = actual===undefined ? '❓' : (actual===expected ? '✅' : '❌');
+            return `<div class="condition-item"><span class="cond-icon">${icon}</span><span>${QUESTIONS[sid]||sid}</span><span style="margin-left:auto;">→ ${expected?'OUI':'NON'}</span></div>`;
+          }).join('')}
+        </div></div>
+      </div>
+    </div>
+  `;
+}
+
+// ======== ACTIONS ========
+function startDiagnosis() {
+  state.screen = 'diagnose';
+  state.facts = {};
+  state.answers = {};
+  state.unknowns = new Set();
+  state.questions = buildQuestionList();
+  state.currentQ = 0;
+  render();
+}
+
+function answer(qId, val) {
+  state.answers[qId] = val;
+  if (val === 'yes') state.facts[qId] = true;
+  else if (val === 'no') state.facts[qId] = false;
+  else { state.facts[qId] = null; state.unknowns.add(qId); }
+  
+  const remaining = getRemainingQuestions();
+  let nextIndex = 0;
+  let found = false;
+  for (let i = 0; i < remaining.length; i++) {
+    if (!state.answers[remaining[i]]) {
+      nextIndex = i;
+      found = true;
+      break;
+    }
+  }
+  if (found) { 
+    state.currentQ = nextIndex; 
+    render(); 
+  } else { 
+    runAndShowResults(); 
+  }
+}
+
+function prevQuestion() { 
+  if (state.currentQ > 0) { 
+    state.currentQ--; 
+    render(); 
+  } 
+}
+
+function runAndShowResults() { 
+  state.diagnoses = runInference(); 
+  state.screen = 'results'; 
+  render(); 
+}
+
+function startOver() { 
+  state.screen = 'start'; 
+  state.facts = {}; 
+  state.answers = {}; 
+  state.diagnoses = []; 
+  state.showFacts = false; 
+  render(); 
+}
+
+function goBack() { 
+  state.screen = 'diagnose'; 
+  state.currentQ = 0; 
+  render(); 
+}
+
+function toggleDiagCard(id) { 
+  const body = document.getElementById(id); 
+  if(body) body.classList.toggle('open'); 
+}
+
+function toggleRuleManager() { 
+  state.showRuleManager = !state.showRuleManager; 
+  render(); 
+}
+
+function toggleFacts() { 
+  state.showFacts = !state.showFacts; 
+  render(); 
+}
+
+function addRule() { 
+  const input = document.getElementById('new-rule-json'); 
+  try { 
+    const rule = JSON.parse(input.value); 
+    if(state.rules.find(r=>r.id===rule.id)) throw new Error('ID existe'); 
+    state.rules.push(rule); 
+    input.value=''; 
+    showNotif(`Règle ${rule.id} ajoutée`,'success'); 
+    render(); 
+  } catch(e) { 
+    showNotif(`Erreur: ${e.message}`,'error'); 
+  } 
+}
+
+function deleteRule() { 
+  const id = document.getElementById('del-rule-id').value.trim().toUpperCase(); 
+  const idx = state.rules.findIndex(r=>r.id===id); 
+  if(idx===-1) { 
+    showNotif(`Règle ${id} introuvable`,'error'); 
+    return; 
+  } 
+  state.rules.splice(idx,1); 
+  showNotif(`Règle ${id} supprimée`,'success'); 
+  render(); 
+}
+
+function showNotif(msg,type) { 
+  const n = document.getElementById('notif'); 
+  n.textContent=msg; 
+  n.className=`notif ${type} show`; 
+  setTimeout(()=>n.classList.remove('show'),3000); 
+}
+
+render();
+</script>
+</body>
+</html>

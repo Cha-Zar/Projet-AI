@@ -376,124 +376,57 @@
 const MIN_ANSWERS = 5;   //  Minimum de réponses (OUI/NON/INCONNU) avant de pouvoir diagnostiquer
 const MAX_DIAGNOSES = 5; //  Maximum de diagnostics affichés
 
-//  DATA  BASE DE CONNAISSANCES 
-const RULES_DATA = [
-  { id:"R01", category:"Alimentation", conditions:{pc_ne_demarre_pas:true,pas_de_lumiere_led:true}, conclusion:"Panne d'alimentation (câble ou bloc d'alimentation défectueux)", solution:"Vérifiez le câble d'alimentation, testez avec une autre prise.", confidence:0.95 },
-  { id:"R02", category:"Alimentation", conditions:{pc_ne_demarre_pas:true,pas_de_lumiere_led:false,ventilateur_tourne:false}, conclusion:"Bloc d'alimentation défaillant ou carte mère morte", solution:"Testez avec un autre bloc d'alimentation.", confidence:0.85 },
-  { id:"R03", category:"Alimentation", conditions:{pc_s_eteint_seul:true,surchauffe:true}, conclusion:"Surchauffe  extinction thermique", solution:"Nettoyez les ventilateurs, remplacez la pâte thermique.", confidence:0.92 },
-  { id:"R04", category:"Écran", conditions:{ecran_noir:true,pc_fonctionne:true,voyant_ecran_allume:true}, conclusion:"Câble vidéo débranché ou carte graphique défaillante", solution:"Vérifiez le câble HDMI/VGA.", confidence:0.88 },
-  { id:"R05", category:"Écran", conditions:{ecran_noir:true,pc_fonctionne:true,voyant_ecran_allume:false}, conclusion:"Écran défectueux", solution:"Vérifiez l'alimentation du moniteur.", confidence:0.90 },
-  { id:"R06", category:"Écran", conditions:{ecran_pixelise:true,artefacts_visuels:true}, conclusion:"Carte graphique surchauffée", solution:"Nettoyez le ventilateur GPU.", confidence:0.87 },
-  { id:"R07", category:"RAM", conditions:{ecran_bleu_bsod:true,redemarrages_aleatoires:true}, conclusion:"Problème de mémoire RAM", solution:"Réinsérez les barrettes RAM, lancez MemTest86.", confidence:0.83 },
-  { id:"R08", category:"RAM", conditions:{pc_lent:true,beaucoup_applications_ouvertes:false,ram_pleine:true}, conclusion:"Mémoire RAM insuffisante", solution:"Fermez les applications inutiles.", confidence:0.80 },
-  { id:"R09", category:"Disque dur", conditions:{pc_lent:true,demarrage_lent:true,bruits_cliquetis:true}, conclusion:"Disque dur en train de tomber en panne", solution:"URGENT: Sauvegardez vos données immédiatement!", confidence:0.95 },
-  { id:"R10", category:"Disque dur", conditions:{demarrage_lent:true,bruits_cliquetis:false,disque_presque_plein:true}, conclusion:"Disque dur presque plein", solution:"Libérez de l'espace disque.", confidence:0.88 },
-  { id:"R11", category:"Disque dur", conditions:{fichiers_inaccessibles:true,erreurs_lecture_ecriture:true}, conclusion:"Secteurs défectueux", solution:"Lancez CHKDSK, sauvegardez vos données.", confidence:0.90 },
-  { id:"R12", category:"Réseau", conditions:{pas_internet:true,wifi_connecte:true,autres_appareils_fonctionnent:true}, conclusion:"Problème DNS/IP", solution:"ipconfig /flushdns, changez les DNS.", confidence:0.85 },
-  { id:"R13", category:"Réseau", conditions:{pas_internet:true,wifi_connecte:false,signal_wifi_visible:true}, conclusion:"Problème d'authentification WiFi", solution:"Vérifiez le mot de passe WiFi.", confidence:0.82 },
-  { id:"R14", category:"Réseau", conditions:{pas_internet:true,wifi_connecte:false,signal_wifi_visible:false}, conclusion:"Routeur en panne ou zone morte", solution:"Redémarrez le routeur.", confidence:0.88 },
-  { id:"R15", category:"Réseau", conditions:{internet_lent:true,wifi_connecte:true,loin_du_routeur:true}, conclusion:"Signal WiFi faible", solution:"Rapprochez-vous du routeur.", confidence:0.85 },
-  { id:"R16", category:"OS", conditions:{ecran_bleu_bsod:true,redemarrages_aleatoires:false,pilote_recent_installe:true}, conclusion:"Pilote incompatible", solution:"Désinstallez le dernier pilote.", confidence:0.90 },
-  { id:"R17", category:"OS", conditions:{pc_gele:true,application_specifique:true}, conclusion:"Application instable", solution:"Forcez la fermeture, réinstallez l'application.", confidence:0.85 },
-  { id:"R18", category:"OS", conditions:{pc_gele:true,application_specifique:false,demarrage_lent:true}, conclusion:"Système corrompu ou malware", solution:"Scan antivirus, SFC /scannow.", confidence:0.82 },
-  { id:"R19", category:"OS", conditions:{erreurs_demarrage:true,windows_ne_demarre_pas:true}, conclusion:"Bootloader corrompu", solution:"Réparer le démarrage depuis USB.", confidence:0.88 },
-  { id:"R20", category:"OS", conditions:{mises_a_jour_echouent:true,espace_disque_suffisant:true}, conclusion:"Windows Update défaillant", solution:"Réinitialisez Windows Update.", confidence:0.80 },
-  { id:"R21", category:"Ventilation", conditions:{bruit_ventilateur_fort:true,surchauffe:true}, conclusion:"Ventilateur encrassé", solution:"Nettoyez les ventilateurs.", confidence:0.90 },
-  { id:"R22", category:"Ventilation", conditions:{bruit_ventilateur_fort:true,surchauffe:false}, conclusion:"Ventilateur défaillant", solution:"Remplacez le ventilateur.", confidence:0.85 },
-  { id:"R23", category:"Périph.", conditions:{clavier_ne_fonctionne_pas:true,connexion_usb:true}, conclusion:"Problème USB ou pilote", solution:"Rebranchez sur un autre port USB.", confidence:0.85 },
-  { id:"R24", category:"Périph.", conditions:{souris_ne_fonctionne_pas:true,connexion_usb:true}, conclusion:"Problème USB ou pilote", solution:"Testez sur un autre port USB.", confidence:0.85 },
-  { id:"R25", category:"Périph.", conditions:{imprimante_ne_fonctionne_pas:true,visible_dans_windows:false}, conclusion:"Imprimante non reconnue", solution:"Redémarrez le spouleur d'impression.", confidence:0.83 },
-  { id:"R26", category:"Son", conditions:{pas_de_son:true,pilotes_audio_ok:true,volume_non_mute:true}, conclusion:"Carte son défaillante", solution:"Vérifiez le périphérique par défaut.", confidence:0.82 },
-  { id:"R27", category:"Son", conditions:{pas_de_son:true,volume_non_mute:false}, conclusion:"Son coupé", solution:"Désactivez le mute.", confidence:0.99 },
-  { id:"R28", category:"Batterie", conditions:{batterie_ne_charge_pas:true,chargeur_fonctionnel:true}, conclusion:"Batterie défaillante", solution:"Testez avec un autre chargeur.", confidence:0.87 },
-  { id:"R29", category:"Batterie", conditions:{batterie_se_decharge_vite:true,age_batterie_superieur_3ans:true}, conclusion:"Batterie usée", solution:"Remplacez la batterie.", confidence:0.90 },
-  { id:"R30", category:"Démarrage", conditions:{pc_redem_en_boucle:true,apres_mise_a_jour:true}, conclusion:"Mise à jour problématique", solution:"Démarrez en mode sans échec.", confidence:0.88 },
-  { id:"R31", category:"Démarrage", conditions:{bips_au_demarrage:true,un_bip_long:true}, conclusion:"Problème RAM", solution:"Réinsérez les barrettes RAM.", confidence:0.92 },
-  { id:"R32", category:"Démarrage", conditions:{bips_au_demarrage:true,plusieurs_bips_courts:true}, conclusion:"Problème GPU", solution:"Réinsérez la carte graphique.", confidence:0.85 },
-  { id:"R33", category:"Performance", conditions:{pc_lent:true,beaucoup_applications_ouvertes:true}, conclusion:"Surcharge CPU/RAM", solution:"Fermez les applications inutiles.", confidence:0.88 },
-  { id:"R34", category:"Performance", conditions:{pc_lent:true,beaucoup_applications_ouvertes:false,virus_detecte:true}, conclusion:"Infection malware", solution:"Lancez un scan antivirus.", confidence:0.90 },
-  { id:"R35", category:"Réseau", conditions:{internet_lent:true,wifi_connecte:true,loin_du_routeur:false,beaucoup_appareils_connectes:true}, conclusion:"Bande passante saturée", solution:"Déconnectez les appareils inutilisés.", confidence:0.80 },
-  { id:"R36", category:"Écran", conditions:{ecran_scintille:true,pilote_recent_installe:true}, conclusion:"Conflit pilote graphique", solution:"Revenez à la version précédente.", confidence:0.88 },
-  { id:"R37", category:"Écran", conditions:{ecran_scintille:true,pilote_recent_installe:false}, conclusion:"Câble défectueux", solution:"Remplacez le câble vidéo.", confidence:0.83 },
-  { id:"R38", category:"OS", conditions:{applications_ne_s_ouvrent_pas:true,message_erreur_dll:true}, conclusion:"Fichiers DLL manquants", solution:"Lancez SFC /scannow.", confidence:0.87 },
-  { id:"R39", category:"Périph.", conditions:{usb_non_detecte:true,autre_usb_fonctionne:true}, conclusion:"Périphérique défaillant", solution:"Testez sur un autre PC.", confidence:0.85 },
-  { id:"R40", category:"Périph.", conditions:{usb_non_detecte:true,autre_usb_fonctionne:false}, conclusion:"Contrôleur USB défaillant", solution:"Désinstallez les contrôleurs USB.", confidence:0.82 },
-  { id:"R41", category:"Réseau", conditions:{connexion_coupe_regulierement:true,wifi_connecte:true}, conclusion:"Interférences WiFi", solution:"Changez le canal WiFi.", confidence:0.83 },
-  { id:"R42", category:"Démarrage", conditions:{message_boot_device_not_found:true}, conclusion:"Disque non détecté", solution:"Vérifiez les connexions SATA.", confidence:0.93 },
-  { id:"R43", category:"Performance", conditions:{jeux_lents:true,fps_bas:true,parametres_graphiques_eleves:true}, conclusion:"Paramètres trop élevés", solution:"Réduisez la qualité graphique.", confidence:0.88 },
-  { id:"R44", category:"OS", conditions:{bureau_ne_s_affiche_pas:true,processus_explorer_manquant:true}, conclusion:"Explorer.exe planté", solution:"Lancez explorer.exe via gestionnaire.", confidence:0.95 },
-  { id:"R45", category:"Alimentation", conditions:{pc_s_eteint_seul:true,surchauffe:false,probleme_alim:true}, conclusion:"Alimentation instable", solution:"Testez avec un autre bloc.", confidence:0.87 }
-];
-
-const QUESTIONS = {
-  pc_ne_demarre_pas: "Le PC ne démarre pas du tout (aucun signe de vie) ?",
-  pas_de_lumiere_led: "Aucune LED n'est allumée sur le boîtier ou la carte mère ?",
-  ventilateur_tourne: "Les ventilateurs tournent-ils quand vous appuyez sur le bouton marche ?",
-  pc_s_eteint_seul: "Le PC s'éteint tout seul de manière inattendue ?",
-  surchauffe: "Le PC est-il très chaud au toucher ou les ventilateurs sont-ils très bruyants ?",
-  ecran_noir: "L'écran reste noir malgré que le PC semble fonctionner ?",
-  pc_fonctionne: "Le PC semble fonctionner (voyants allumés, ventilateurs tournent) ?",
-  voyant_ecran_allume: "Le voyant LED du moniteur est-il allumé (pas en veille) ?",
-  ecran_pixelise: "Des pixels aberrants ou des artifacts graphiques apparaissent à l'écran ?",
-  artefacts_visuels: "Des artefacts visuels (lignes, formes étranges) sont-ils visibles ?",
-  ecran_scintille: "L'écran scintille ou clignote ?",
-  ecran_bleu_bsod: "Apparition d'un écran bleu (BSOD) ?",
-  redemarrages_aleatoires: "Le PC redémarre aléatoirement sans avertissement ?",
-  pc_lent: "Le PC est anormalement lent dans ses opérations ?",
-  beaucoup_applications_ouvertes: "Beaucoup d'applications sont-elles ouvertes simultanément ?",
-  ram_pleine: "Le gestionnaire des tâches indique-t-il une utilisation RAM > 90% ?",
-  demarrage_lent: "Le démarrage prend-il beaucoup plus de temps que d'habitude ?",
-  bruits_cliquetis: "Entendez-vous des bruits de cliquetis ou de grattage provenant du disque dur ?",
-  disque_presque_plein: "Le disque dur est-il rempli à plus de 90% de sa capacité ?",
-  fichiers_inaccessibles: "Des fichiers ou dossiers sont-ils devenus inaccessibles ?",
-  erreurs_lecture_ecriture: "Des erreurs de lecture/écriture apparaissent-elles ?",
-  pas_internet: "Vous n'avez pas accès à Internet ?",
-  wifi_connecte: "Êtes-vous connecté au réseau WiFi ?",
-  autres_appareils_fonctionnent: "D'autres appareils ont-ils accès à Internet sur ce même réseau ?",
-  signal_wifi_visible: "Le réseau WiFi est-il visible dans la liste des réseaux disponibles ?",
-  internet_lent: "La connexion Internet est-elle très lente ?",
-  loin_du_routeur: "Êtes-vous loin du routeur WiFi (plus de 10m) ?",
-  beaucoup_appareils_connectes: "Beaucoup d'appareils sont-ils connectés à votre WiFi ?",
-  connexion_coupe_regulierement: "La connexion WiFi se coupe-t-elle régulièrement ?",
-  pilote_recent_installe: "Avez-vous installé un nouveau pilote récemment ?",
-  pc_gele: "Le PC se fige complètement (aucune réponse) ?",
-  application_specifique: "Le problème survient-il uniquement avec une application spécifique ?",
-  erreurs_demarrage: "Des messages d'erreur apparaissent-ils au démarrage ?",
-  windows_ne_demarre_pas: "Windows refuse de démarrer complètement ?",
-  mises_a_jour_echouent: "Les mises à jour Windows échouent-elles systématiquement ?",
-  espace_disque_suffisant: "Avez-vous plus de 10 Go d'espace libre ?",
-  bruit_ventilateur_fort: "Les ventilateurs font-ils un bruit anormalement fort ?",
-  clavier_ne_fonctionne_pas: "Le clavier ne fonctionne pas ou certaines touches ne répondent pas ?",
-  connexion_usb: "Le périphérique est-il connecté en USB ?",
-  souris_ne_fonctionne_pas: "La souris ne fonctionne pas ou est erratique ?",
-  imprimante_ne_fonctionne_pas: "L'imprimante ne répond pas aux commandes d'impression ?",
-  visible_dans_windows: "L'imprimante apparaît-elle dans 'Périphériques et imprimantes' ?",
-  pas_de_son: "Pas de son du tout malgré le volume non coupé ?",
-  pilotes_audio_ok: "Les pilotes audio apparaissent-ils normalement ?",
-  volume_non_mute: "Le volume est-il activé (non muet) ?",
-  batterie_ne_charge_pas: "La batterie ne se charge pas quand le chargeur est branché ?",
-  chargeur_fonctionnel: "Le chargeur fonctionne-t-il avec un autre appareil ?",
-  batterie_se_decharge_vite: "La batterie se décharge très rapidement ?",
-  age_batterie_superieur_3ans: "La batterie a-t-elle plus de 3 ans ?",
-  pc_redem_en_boucle: "Le PC redémarre en boucle sans jamais atteindre le bureau ?",
-  apres_mise_a_jour: "Ce problème a-t-il commencé après une mise à jour Windows ?",
-  bips_au_demarrage: "Entendez-vous des bips sonores au démarrage ?",
-  un_bip_long: "Est-ce un long bip ?",
-  plusieurs_bips_courts: "Y a-t-il plusieurs bips courts successifs ?",
-  message_boot_device_not_found: "Message 'Boot device not found' ?",
-  virus_detecte: "Votre antivirus a-t-il détecté une menace récemment ?",
-  jeux_lents: "Les jeux vidéo sont-ils particulièrement lents ?",
-  fps_bas: "Le nombre d'images par seconde (FPS) est-il anormalement bas ?",
-  parametres_graphiques_eleves: "Les paramètres graphiques sont-ils réglés au maximum ?",
-  bureau_ne_s_affiche_pas: "Le bureau ne s'affiche pas après la connexion ?",
-  processus_explorer_manquant: "Dans le gestionnaire, 'explorer.exe' est-il absent ?",
-  probleme_alim: "Le bloc d'alimentation vous semble-t-il insuffisant ?",
-  usb_non_detecte: "Un périphérique USB n'est pas détecté ?",
-  autre_usb_fonctionne: "D'autres périphériques USB fonctionnent-ils ?",
-  applications_ne_s_ouvrent_pas: "Des applications refusent de s'ouvrir ?",
-  message_erreur_dll: "Message d'erreur mentionnant un '.dll manquant' ?"
+// ======== CHARGEMENT DEPUIS rules.json ========
+let state = {
+  screen: 'loading',   // ← écran de chargement
+  rules: [],
+  facts: {},
+  unknowns: new Set(),
+  questions: [],
+  currentQ: 0,
+  answers: {},
+  diagnoses: [],
+  showRuleManager: false,
+  showFacts: false
 };
 
+let QUESTIONS = {};  // sera rempli après chargement
+
+// Chargement du fichier rules.json
+fetch('./data/rules.json')
+  .then(response => {
+    if (!response.ok) throw new Error('Fichier rules.json introuvable');
+    return response.json();
+  })
+  .then(data => {
+    // Charger les règles
+    state.rules = data.rules;
+
+    // Construire le dictionnaire QUESTIONS depuis symptom_questions
+    QUESTIONS = {};
+    for (const q of data.symptom_questions) {
+      QUESTIONS[q.id] = q.question;
+    }
+
+    // Passer à l'écran d'accueil
+    state.screen = 'start';
+    render();
+  })
+  .catch(error => {
+    document.getElementById('app-root').innerHTML = `
+      <div style="text-align:center;padding:60px 20px;">
+        <div style="font-size:48px;margin-bottom:16px;">❌</div>
+        <div style="font-size:20px;font-weight:700;color:var(--danger);margin-bottom:8px;">
+          Erreur de chargement
+        </div>
+        <div style="font-family:var(--mono);font-size:12px;color:var(--text-muted);">
+          ${error.message}<br><br>
+          Vérifiez que rules.json est dans le dossier <strong>data/</strong><br>
+          et que vous utilisez un serveur local (pas file://).
+        </div>
+      </div>
+    `;
+  });
 const PRIORITY_QUESTIONS = [
   "pas_internet", "internet_lent", "wifi_connecte", "signal_wifi_visible", "autres_appareils_fonctionnent",
   "pc_ne_demarre_pas", "pas_de_lumiere_led", "ventilateur_tourne", "pc_s_eteint_seul", "surchauffe", "probleme_alim",
@@ -510,19 +443,6 @@ const PRIORITY_QUESTIONS = [
   "virus_detecte",
   "pilote_recent_installe", "connexion_coupe_regulierement", "loin_du_routeur", "beaucoup_appareils_connectes"
 ];
-
-let state = {
-  screen: 'start',
-  rules: JSON.parse(JSON.stringify(RULES_DATA)),
-  facts: {},
-  unknowns: new Set(),
-  questions: [],
-  currentQ: 0,
-  answers: {},
-  diagnoses: [],
-  showRuleManager: false,
-  showFacts: false
-};
 
 const QUESTION_DEPENDENCIES = {
   "wifi_connecte": { dependsOn: "pas_internet", requiredValue: true },
@@ -676,9 +596,23 @@ function runInference() {
 //  RENDER 
 function render() {
   const root = document.getElementById('app-root');
+
+  // ★ Écran de chargement
+  if (state.screen === 'loading') {
+    root.innerHTML = `
+      <div style="text-align:center;padding:80px 20px;">
+        <div style="font-family:var(--mono);font-size:13px;color:var(--accent);">
+          // Chargement de la base de connaissances...
+        </div>
+      </div>
+    `;
+    return;
+  }
+
   if (state.screen === 'start') root.innerHTML = renderStart();
   else if (state.screen === 'diagnose') root.innerHTML = renderDiagnose();
   else if (state.screen === 'results') root.innerHTML = renderResults();
+
   document.getElementById('rule-count-badge').textContent = `${state.rules.length} règles chargées`;
 }
 

@@ -8,9 +8,9 @@ import json
 from pathlib import Path
 
 
-# ======== CONSTANTES ========
-MIN_ANSWERS = 5    # ★ Minimum de réponses (OUI/NON/INCONNU) avant diagnostic
-MAX_DIAGNOSES = 5  # ★ Maximum de diagnostics retournés
+#Constantes
+MIN_ANSWERS = 5    #Minimum de réponses (OUI/NON/INCONNU) avant diagnostic
+MAX_DIAGNOSES = 5  #Maximum de diagnostics retournés
 
 
 class KnowledgeBase:
@@ -63,7 +63,7 @@ class FactBase:
         return symptom_id in self.facts and self.facts[symptom_id] is not None
 
     def count_all_answers(self) -> int:
-        """★ Compte toutes les réponses données : OUI, NON et INCONNU."""
+        """ Compte toutes les réponses données : OUI, NON et INCONNU."""
         return len(self.facts)
 
     def clear(self) -> None:
@@ -87,7 +87,7 @@ class InferenceEngine:
         Logique corrigée :
         - Contradiction explicite (réponse ≠ attendu) → rejet immédiat.
         - Inconnu (None) → pas de rejet, confiance réduite de 10% par inconnu.
-        - ★ Si 0 réponse ferme parmi les conditions → rejet
+        -  Si 0 réponse ferme parmi les conditions → rejet
           (évite un diagnostic sur 100% d'inconnus).
 
         Retourne (match: bool, confidence_score: float).
@@ -107,10 +107,10 @@ class InferenceEngine:
                 # Condition satisfaite
                 known_count += 1
             else:
-                # ★ Contradiction explicite → règle rejetée immédiatement
+                #Contradiction explicite → règle rejetée immédiatement
                 return False, 0.0
 
-        # ★ Aucune réponse ferme = tout inconnu → rejet
+        #  Aucune réponse ferme = tout inconnu → rejet
         if known_count == 0:
             return False, 0.0
 
@@ -122,8 +122,8 @@ class InferenceEngine:
         """
         Lance le chaînage avant : évalue toutes les règles.
 
-        ★ Vérifie MIN_ANSWERS réponses (OUI/NON/INCONNU) avant de diagnostiquer.
-        ★ Retourne au maximum MAX_DIAGNOSES diagnostics triés par confiance.
+         Vérifie MIN_ANSWERS réponses (OUI/NON/INCONNU) avant de diagnostiquer.
+         Retourne au maximum MAX_DIAGNOSES diagnostics triés par confiance.
 
         Args:
             fact_base: La base de faits courante.
@@ -132,7 +132,7 @@ class InferenceEngine:
         Returns:
             Liste des diagnostics déclenchés (max MAX_DIAGNOSES).
         """
-        # ★ Vérification du minimum de réponses
+        #  Vérification du minimum de réponses
         if not skip_min_check:
             total_answered = fact_base.count_all_answers()
             if total_answered < MIN_ANSWERS:
@@ -158,7 +158,7 @@ class InferenceEngine:
         # Tri par confiance décroissante
         diagnoses.sort(key=lambda d: d["confidence"], reverse=True)
 
-        # ★ Limiter aux MAX_DIAGNOSES premiers résultats
+        #  Limiter aux MAX_DIAGNOSES premiers résultats
         return diagnoses[:MAX_DIAGNOSES]
 
     def get_missing_symptoms(self, fact_base: FactBase) -> list[str]:
@@ -207,8 +207,8 @@ class InferenceEngine:
 def run_cli_session():
     """Interface ligne de commande simple pour tester le moteur."""
     print("\n" + "="*60)
-    print("  SYSTÈME EXPERT — DIAGNOSTIC DE PANNE INFORMATIQUE")
-    print("  FST / Département SI — Fondements de l'IA")
+    print("  SYSTÈME EXPERT  DIAGNOSTIC DE PANNE INFORMATIQUE")
+    print("  FST / Département SI  Fondements de l'IA")
     print(f"  Minimum {MIN_ANSWERS} réponses · Max {MAX_DIAGNOSES} diagnostics")
     print("="*60)
     print("\nRépondez aux questions par O (oui), N (non) ou ? (inconnu)\n")
@@ -283,7 +283,7 @@ def run_cli_session():
         print(f"\n✅ {len(diagnoses)} diagnostic(s) identifié(s) (max {MAX_DIAGNOSES}) :\n")
         for i, d in enumerate(diagnoses, 1):
             print(f"{'─'*50}")
-            print(f"Diagnostic #{i} — Confiance : {int(d['confidence']*100)}%")
+            print(f"Diagnostic #{i}  Confiance : {int(d['confidence']*100)}%")
             print(engine.explain(d, fb))
 
     print("\n" + "="*60)

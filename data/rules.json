@@ -439,6 +439,8 @@
     {"id": "os", "label": "Système d'exploitation", "icon": "🖥️"},
     {"id": "peripheriques", "label": "Périphériques", "icon": "🖱️"},
     {"id": "son", "label": "Son & Audio", "icon": "🔊"},
-    {"id": "batterie", "label": "Batterie (laptop)", "icon": "🔋"}
+    {"id": "batterie", "label": "Batterie (laptop)", "icon": "🔋"},
+    {"id": "ventilation", "label": "Ventilation & Refroidissement", "icon": "🌀"},
+    {"id": "demarrage", "label": "Démarrage & BIOS", "icon": "🔌"}
   ]
 }

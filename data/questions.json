@@ -73,7 +73,6 @@
     {"id": "parametres_graphiques_eleves", "question": "Les paramètres graphiques du jeu sont-ils réglés au maximum (Ultra/High) ?", "type": "boolean", "category": "Performance"},
     {"id": "bureau_ne_s_affiche_pas", "question": "Le bureau Windows ne s'affiche pas après la connexion (écran noir ou fond uni) ?", "type": "boolean", "category": "OS"},
     {"id": "processus_explorer_manquant", "question": "Dans le Gestionnaire des tâches, 'explorer.exe' est-il absent de la liste des processus ?", "type": "boolean", "category": "OS"},
-    {"id": "probleme_alim", "question": "Votre bloc d'alimentation semble-t-il insuffisant pour votre configuration matérielle ?", "type": "boolean", "category": "Alimentation"},
     {"id": "usb_non_detecte", "question": "Un périphérique USB n'est pas reconnu par Windows (pas de son de connexion) ?", "type": "boolean", "category": "Périphériques"},
     {"id": "autre_usb_fonctionne", "question": "D'autres périphériques USB fonctionnent-ils correctement sur ce même port USB ?", "type": "boolean", "category": "Périphériques"},
     {"id": "applications_ne_s_ouvrent_pas", "question": "Des applications refusent de s'ouvrir, affichant une erreur au lancement ?", "type": "boolean", "category": "OS"},
@@ -82,40 +81,34 @@
   ],
   "question_tree": {
     "root_questions": [
-  "pc_ne_demarre_pas",
-  "ecran_noir",
-  "pc_lent",
-  "pas_internet",
-  "pc_gele"
+      "pc_ne_demarre_pas"
     ],
     "children": {
       "pc_ne_demarre_pas": {
         "condition": true,
-        "children": ["pc_s_eteint_seul","pas_de_lumiere_led", "ventilateur_tourne", "bips_au_demarrage"]
+        "children": ["pas_de_lumiere_led", "bips_au_demarrage"]
+      },
+      "pc_ne_demarre_pas_false": {
+        "parent": "pc_ne_demarre_pas",
+        "condition": false,
+        "children": ["ventilateur_tourne", "ecran_noir", "erreurs_demarrage"]
       },
       "bips_au_demarrage": {
         "condition": true,
         "children": ["un_bip_long", "plusieurs_bips_courts"]
       },
-      "pc_s_eteint_seul": {
-        "condition": true,
-        "children": ["surchauffe", "probleme_alim", "apres_mise_a_jour"]
-      },
       "ecran_noir": {
         "condition": true,
         "children": ["pc_fonctionne", "voyant_ecran_allume", "connexion_hdmi"]
       },
-      "ecran_pixelise": {
+      "pc_fonctionne": {
         "condition": true,
-        "children": ["artefacts_visuels", "surchauffe"]
+        "children": ["bureau_ne_s_affiche_pas", "pc_gele", "pc_lent", "pas_de_son", "pas_internet"]
       },
-      "ecran_scintille": {
-        "condition": true,
-        "children": ["pilote_recent_installe", "connexion_hdmi"]
-      },
-      "ecran_bleu_bsod": {
-        "condition": true,
-        "children": ["redemarrages_aleatoires", "pilote_recent_installe", "pc_overclocked"]
+      "pc_fonctionne_false": {
+        "parent": "pc_fonctionne",
+        "condition": false,
+        "children": ["ventilateur_tourne", "bips_au_demarrage", "message_boot_device_not_found"]
       },
       "pc_lent": {
         "condition": true,
@@ -138,8 +131,8 @@
         "children": ["connexion_coupe_regulierement"]
       },
       "wifi_connecte_false": {
-        "condition": false,
         "parent": "wifi_connecte",
+        "condition": false,
         "children": ["signal_wifi_visible"]
       },
       "internet_lent": {

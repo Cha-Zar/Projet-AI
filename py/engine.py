@@ -46,37 +46,68 @@ class InferenceEngine:
         self.inconsistency_rules = inconsistency_rules
         self.contradictions      = contradictions
 
-        # ── Blocage conditionnel : si condition=True → ignorer ces questions ──
+        # ── Blocage simple : si condition=True → bloquer ces questions ─────────
         self.skip_if = {
             "pc_ne_demarre_pas": [
-                # Réseau — impossible si le PC ne démarre pas
+                # Écran — impossible à observer si le PC ne démarre pas
+                "ecran_noir", "ecran_scintille", "ecran_pixelise",
+                "artefacts_visuels", "voyant_ecran_allume",
+                "connexion_hdmi", "pc_fonctionne",
+                # Réseau — nécessite un OS actif
                 "pas_internet", "internet_lent", "connexion_coupe_regulierement",
                 "wifi_connecte", "signal_wifi_visible", "autres_appareils_fonctionnent",
                 "loin_du_routeur", "beaucoup_appareils_connectes", "fai_probleme",
-                # Audio/périphériques — nécessitent Windows actif
+                # Audio / périphériques — nécessitent Windows
                 "pas_de_son", "clavier_ne_fonctionne_pas", "souris_ne_fonctionne_pas",
                 "usb_non_detecte", "imprimante_ne_fonctionne_pas",
                 "batterie_ne_charge_pas", "batterie_se_decharge_vite",
-                # Performance/système — nécessitent un OS chargé
+                # Performance / système — nécessitent un OS chargé
                 "pc_lent", "pc_gele", "ecran_bleu_bsod",
                 "jeux_lents", "applications_ne_s_ouvrent_pas",
                 "bureau_ne_s_affiche_pas", "mises_a_jour_echouent",
+                "demarrage_lent", "ram_pleine", "disque_presque_plein",
+                "virus_detecte", "bruits_cliquetis", "fichiers_inaccessibles",
+                "erreurs_lecture_ecriture", "ssd_utilise",
                 # Extinction spontanée ≠ ne démarre pas du tout
                 "pc_s_eteint_seul",
-                # Messages démarrage impossibles si rien ne s'allume
+                # Erreurs de démarrage impossibles si rien ne s'allume
                 "erreurs_demarrage", "windows_ne_demarre_pas",
-                "message_boot_device_not_found", "pc_redémarre_en_boucle",
+                "message_boot_device_not_found", "pc_redemarre_en_boucle",
                 "apres_mise_a_jour", "message_erreur_demarrage_specific",
             ],
             "ecran_noir": [
-                # Écran totalement noir exclut tout contenu visuel
-                "ecran_pixelise", "artefacts_visuels",
+                # Écran totalement noir exclut tout contenu visuel direct
+                # Le reste est géré par skip_if_combined selon pc_fonctionne
+                "ecran_pixelise", "artefacts_visuels", "ecran_scintille",
             ],
             "pas_internet": [
-                # Pas internet et lent sont mutuellement exclusifs
+                # Absence totale et lenteur sont mutuellement exclusifs
                 "internet_lent", "connexion_coupe_regulierement",
             ],
         }
+
+        # ── Blocage combiné : si TOUTES les conditions → bloquer ces questions ─
+        # Utile quand le blocage dépend de deux faits simultanés.
+        # ecran_noir=OUI + pc_fonctionne=NON = panne alimentation/matériel,
+        # pas un problème d'affichage → toutes les questions OS sont absurdes.
+        # En revanche si pc_fonctionne=OUI, le PC tourne sans signal vidéo,
+        # donc pc_lent etc. restent pertinents.
+        self.skip_if_combined = [
+            {
+                "conditions": {"ecran_noir": True, "pc_fonctionne": False},
+                "block": [
+                    "pc_lent", "pc_gele", "ecran_bleu_bsod",
+                    "pas_internet", "internet_lent", "connexion_coupe_regulierement",
+                    "pas_de_son", "clavier_ne_fonctionne_pas", "souris_ne_fonctionne_pas",
+                    "usb_non_detecte", "imprimante_ne_fonctionne_pas",
+                    "jeux_lents", "applications_ne_s_ouvrent_pas",
+                    "bureau_ne_s_affiche_pas", "mises_a_jour_echouent",
+                    "demarrage_lent", "ram_pleine", "disque_presque_plein",
+                    "virus_detecte", "bruits_cliquetis", "fichiers_inaccessibles",
+                    "erreurs_lecture_ecriture", "ssd_utilise",
+                ],
+            },
+        ]
 
     # ── Évaluation d'une règle ────────────────────────────────────────────────
 
@@ -111,9 +142,14 @@ class InferenceEngine:
 
         # Calcule les questions à ignorer selon les faits actuels
         blocked = set()
+        # Blocage simple (une condition = True)
         for condition_sid, skip_list in self.skip_if.items():
             if fb.get(condition_sid) == True:
                 blocked.update(skip_list)
+        # Blocage combiné (plusieurs conditions simultanées)
+        for rule in self.skip_if_combined:
+            if all(fb.get(k) == v for k, v in rule["conditions"].items()):
+                blocked.update(rule["block"])
 
         # 1. Questions déclenchées par les réponses actuelles (dépendances)
         triggered = []
@@ -256,7 +292,6 @@ def answer_question(sid: str, val_str: str) -> str:
     val = True if val_str == "yes" else (False if val_str == "no" else None)
     _fb.set(sid, val)
 
-    # Vérification immédiate — pas seulement en fin de session
     warnings = _engine.detect_inconsistencies(_fb) if _engine else []
     return json.dumps({"status": "ok", "warnings": warnings})
 
@@ -291,5 +326,3 @@ def run_diagnosis() -> str:
         })
     except ValueError as e:
         return json.dumps({"error": str(e)})
-
-

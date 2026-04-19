@@ -76,7 +76,7 @@
     {"id": "autre_usb_fonctionne",        "question": "D'autres appareils USB fonctionnent-ils normalement sur ce même port ?",                                                         "category": "Périphériques"},
     {"id": "imprimante_ne_fonctionne_pas","question": "L'imprimante ne réagit pas quand vous lancez une impression — les travaux restent bloqués ?",                                   "category": "Périphériques"},
     {"id": "visible_dans_windows",        "question": "L'imprimante apparaît-elle dans 'Périphériques et imprimantes' dans les paramètres Windows ?",                                  "category": "Périphériques"},
-
+    
     {"id": "batterie_ne_charge_pas",      "question": "La batterie ne se recharge pas du tout, même avec le chargeur branché ?",                                                        "category": "Batterie"},
     {"id": "chargeur_fonctionnel",        "question": "Ce chargeur fonctionne-t-il avec un autre appareil compatible ?",                                                                "category": "Batterie"},
     {"id": "batterie_se_decharge_vite",   "question": "La batterie se vide très vite — moins de 2 heures en utilisation normale ?",                                                     "category": "Batterie"},

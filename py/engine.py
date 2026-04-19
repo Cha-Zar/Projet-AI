@@ -45,7 +45,24 @@ class InferenceEngine:
         self.question_triggers  = question_triggers  # id → [{question, value}, ...]
         self.inconsistency_rules = inconsistency_rules  # [{if:{}, message}]
         self.contradictions      = contradictions        # [{conditions:{}, message}]
-
+        # Dans __init__, après les autres attributs :
+        self.skip_if = {
+            "pc_ne_demarre_pas": [
+                "pas_internet", "internet_lent", "connexion_coupe_regulierement",
+                "pas_de_son", "clavier_ne_fonctionne_pas", "souris_ne_fonctionne_pas",
+                "usb_non_detecte", "imprimante_ne_fonctionne_pas",
+                "batterie_ne_charge_pas", "batterie_se_decharge_vite",
+                "pc_lent", "pc_gele", "ecran_bleu_bsod",
+                "jeux_lents", "applications_ne_s_ouvrent_pas",
+                "bureau_ne_s_affiche_pas", "mises_a_jour_echouent",
+            ],
+            "ecran_noir": [
+                "ecran_pixelise", "ecran_scintille", "artefacts_visuels",
+            ],
+            "pas_internet": [
+                "internet_lent", "connexion_coupe_regulierement",
+            ],
+        }
     # ── Évaluation d'une règle ────────────────────────────────────────────────
 
     def _eval_rule(self, rule: dict, fb: FactBase):
@@ -75,32 +92,36 @@ class InferenceEngine:
     # ── Sélection de la prochaine question ────────────────────────────────────
 
     def next_question(self, fb: FactBase) -> dict | None:
-        answered = set(fb.facts.keys())
+            answered = set(fb.facts.keys())
 
-        # 1. Questions déclenchées par les réponses actuelles (dépendances)
-        triggered = []
-        for qid, triggers in self.question_triggers.items():
-            if qid in answered:
-                continue
-            for t in triggers:
-                if fb.get(t["question"]) == t["value"]:
-                    triggered.append(qid)
-                    break
+            # Calcule les questions à ignorer selon les faits actuels
+            blocked = set()
+            for condition_sid, skip_list in self.skip_if.items():
+                if fb.get(condition_sid) == True:
+                    blocked.update(skip_list)
 
-        # Priorité parmi les déclenchées : celles qui apparaissent dans le plus de règles
-        if triggered:
-            scored = sorted(triggered, key=lambda q: self._rule_coverage(q), reverse=True)
-            for qid in scored:
-                if qid in self.questions_map:
+            # 1. Questions déclenchées par les réponses actuelles (dépendances)
+            triggered = []
+            for qid, triggers in self.question_triggers.items():
+                if qid in answered or qid in blocked:   # ← ajout du check blocked
+                    continue
+                for t in triggers:
+                    if fb.get(t["question"]) == t["value"]:
+                        triggered.append(qid)
+                        break
+
+            if triggered:
+                scored = sorted(triggered, key=lambda q: self._rule_coverage(q), reverse=True)
+                for qid in scored:
+                    if qid in self.questions_map:
+                        return self.questions_map[qid]
+
+            # 2. Fallback : screening racine dans l'ordre prévu
+            for qid in self.screening_order:
+                if qid not in answered and qid in self.questions_map and qid not in blocked:  # ← ajout
                     return self.questions_map[qid]
 
-        # 2. Fallback : screening racine dans l'ordre prévu
-        for qid in self.screening_order:
-            if qid not in answered and qid in self.questions_map:
-                return self.questions_map[qid]
-
-        return None     # plus de questions disponibles
-
+            return None
     def _rule_coverage(self, qid: str) -> int:
         return sum(1 for r in self.rules if qid in r.get("conditions", {}))
 

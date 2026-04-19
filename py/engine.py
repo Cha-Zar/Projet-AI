@@ -65,7 +65,7 @@ class InferenceEngine:
                 "pc_s_eteint_seul",
                 # Messages démarrage impossibles si rien ne s'allume
                 "erreurs_demarrage", "windows_ne_demarre_pas",
-                "message_boot_device_not_found", "pc_redemarre_en_boucle",
+                "message_boot_device_not_found", "pc_redémarre_en_boucle",
                 "apres_mise_a_jour", "message_erreur_demarrage_specific",
             ],
             "ecran_noir": [
@@ -293,21 +293,3 @@ def run_diagnosis() -> str:
         return json.dumps({"error": str(e)})
 
 
-def add_rule_py(rule_json_str: str) -> str:
-    try:
-        rule = json.loads(rule_json_str)
-        if any(r["id"] == rule["id"] for r in _engine.rules):
-            return json.dumps({"error": "ID déjà utilisé"})
-        _engine.rules.append(rule)
-        _rules_raw.append(rule)
-        return json.dumps({"ok": True, "count": len(_engine.rules)})
-    except Exception as e:
-        return json.dumps({"error": str(e)})
-
-
-def delete_rule_py(rule_id: str) -> str:
-    before = len(_engine.rules)
-    _engine.rules = [r for r in _engine.rules if r["id"] != rule_id]
-    if len(_engine.rules) == before:
-        return json.dumps({"error": f"Règle {rule_id} introuvable"})
-    return json.dumps({"ok": True, "count": len(_engine.rules)})

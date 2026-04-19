@@ -516,10 +516,6 @@ function renderStart() {
       ${catChips}
     </div>
 
-    <div class="section-toggle" onclick="toggleRuleMgr()">
-      ⚙ Gestionnaire de règles <span style="color:var(--purple)">${S.showRuleMgr?'▲ masquer':'▼ afficher'}</span>
-    </div>
-    ${S.showRuleMgr ? renderRuleMgr() : ''}
   </div>`;
 }
 
@@ -528,30 +524,6 @@ function filterCat(cat) {
   render();
 }
 
-function renderRuleMgr() {
-  let list = '';
-  try {
-    const r = JSON.parse(pyodide.runPython('json.dumps(_engine.rules[:20])'));
-    list = r.map(x => `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:10px;">
-      <span style="color:var(--cyan);width:40px;flex-shrink:0">${x.id}</span>
-      <span style="color:var(--purple);width:90px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${x.category}</span>
-      <span style="color:var(--text-muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${x.conclusion.slice(0,44)}…</span>
-      <span style="color:var(--text-muted)">${Math.round((x.confidence||0)*100)}%</span>
-    </div>`).join('');
-  } catch(e) {}
-
-  return `<div class="rule-mgr">
-    <div class="rule-mgr-title">⚙ Gestion dynamique des règles (Python)</div>
-    <div class="inp-row">
-      <input class="txt-inp" id="del-id" placeholder="ID à supprimer (ex: R01)">
-      <button class="btn-sm danger" onclick="deleteRule()">Supprimer</button>
-    </div>
-    <textarea class="txt-inp" id="new-rule" rows="4" style="width:100%;margin-top:6px;" placeholder='{"id":"R99","category":"Réseau","severity":"medium","conditions":{"pc_lent":true},"conclusion":"...","solution":"...","confidence":0.8}'></textarea>
-    <button class="btn-sm" style="margin-top:8px;" onclick="addRule()">+ Ajouter règle</button>
-    <div style="margin-top:16px;font-family:var(--mono);font-size:9px;color:var(--text-muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Règles actives (20 premières)</div>
-    <div style="max-height:200px;overflow-y:auto;">${list}</div>
-  </div>`;
-}
 
 /* ── DIAGNOSE ── */
 function renderDiagnose() {
@@ -788,36 +760,14 @@ async function runDiag() {
 }
 
 function startOver() { S.screen='start'; S.answers={}; S.answeredCount=0; S.diagnoses=[]; S.livePreview=[]; S.showFacts=false; S.currentQ=null; render(); }
-function goBack()    { S.screen='diagnose'; S.currentQ=JSON.parse(pyodide.runPython('get_next_question()')); render(); }
+function goBack() { 
+  S.screen = 'start'; 
+  render(); 
+}
 function toggleCard(bId, cId) { document.getElementById(bId)?.classList.toggle('open'); document.getElementById(cId)?.classList.toggle('open'); }
 function toggleFacts()   { S.showFacts=!S.showFacts; render(); }
 function toggleRuleMgr() { S.showRuleMgr=!S.showRuleMgr; render(); }
 
-function addRule() {
-  const raw = document.getElementById('new-rule')?.value.trim();
-  if (!raw) return;
-  try {
-    JSON.parse(raw);
-    const esc = raw.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    const res = JSON.parse(pyodide.runPython(`add_rule_py('${esc}')`));
-    if (res.error) { showNotif('Erreur: '+res.error,'error'); return; }
-    S.rulesCount = res.count;
-    document.getElementById('new-rule').value='';
-    showNotif('Règle ajoutée','success');
-    render();
-  } catch(e) { showNotif('JSON invalide: '+e.message,'error'); }
-}
-
-function deleteRule() {
-  const id = document.getElementById('del-id')?.value.trim().toUpperCase();
-  if (!id) return;
-  const res = JSON.parse(pyodide.runPython(`delete_rule_py('${id}')`));
-  if (res.error) { showNotif(res.error,'error'); return; }
-  S.rulesCount = res.count;
-  document.getElementById('del-id').value='';
-  showNotif(`Règle ${id} supprimée`,'success');
-  render();
-}
 
 function showNotif(msg, type) {
   const n = document.getElementById('notif');

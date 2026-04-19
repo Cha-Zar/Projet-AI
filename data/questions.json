@@ -1,220 +1,91 @@
 {
-  "meta": {
-    "version": "2.0",
-    "author": "SysDiag Expert Base",
-    "description": "Symptômes, arbre de questions et catégories"
-  },
   "symptom_questions": [
-    {"id": "pc_ne_demarre_pas", "question": "Le PC ne montre aucun signe de vie (aucun LED, aucun son) quand vous appuyez sur le bouton marche ?", "type": "boolean", "category": "Alimentation"},
-    {"id": "pas_de_lumiere_led", "question": "Aucune LED n'est allumée sur le boîtier ou la carte mère ?", "type": "boolean", "category": "Alimentation"},
-    {"id": "ventilateur_tourne", "question": "Les ventilateurs tournent-ils quand vous appuyez sur le bouton marche ?", "type": "boolean", "category": "Alimentation"},
-    {"id": "pc_s_eteint_seul", "question": "Le PC s'éteint tout seul de manière inattendue ?", "type": "boolean", "category": "Alimentation"},
-    {"id": "surchauffe", "question": "Le PC est-il brûlant au toucher ou les ventilateurs s'emballent-ils fortement ?", "type": "boolean", "category": "Alimentation"},
-    {"id": "probleme_alim", "question": "Pensez-vous que votre bloc d'alimentation est sous-dimensionné pour votre configuration ?", "type": "boolean", "category": "Alimentation"},
-    {"id": "ecran_noir", "question": "L'écran reste complètement noir bien que le PC semble fonctionner ?", "type": "boolean", "category": "Ecran"},
-    {"id": "pc_fonctionne", "question": "Le PC semble fonctionner (voyants allumés, ventilateurs tournent, disques actifs) ?", "type": "boolean", "category": "Ecran"},
-    {"id": "voyant_ecran_allume", "question": "Le voyant LED du moniteur est-il allumé (pas en mode veille) ?", "type": "boolean", "category": "Ecran"},
-    {"id": "connexion_hdmi", "question": "Utilisez-vous un câble HDMI pour connecter le PC à l'écran ?", "type": "boolean", "category": "Ecran"},
-    {"id": "ecran_pixelise", "question": "Des pixels aberrants, blocs colorés ou artifacts graphiques apparaissent à l'écran ?", "type": "boolean", "category": "Ecran"},
-    {"id": "artefacts_visuels", "question": "Des lignes, triangles ou formes étranges corrompent l'image ?", "type": "boolean", "category": "Ecran"},
-    {"id": "ecran_scintille", "question": "L'écran scintille, clignote ou flicke ?", "type": "boolean", "category": "Ecran"},
-    {"id": "ecran_bleu_bsod", "question": "Un écran bleu avec message d'erreur (BSOD - Blue Screen of Death) apparaît ?", "type": "boolean", "category": "OS"},
-    {"id": "redemarrages_aleatoires", "question": "Le PC redémarre aléatoirement sans avertissement ?", "type": "boolean", "category": "OS"},
-    {"id": "pc_overclocked", "question": "Avez-vous overclocké votre CPU, RAM (XMP/EXPO) ou GPU ?", "type": "boolean", "category": "OS"},
-    {"id": "overclocking_actif", "question": "Un overclocking est-il actuellement actif sur votre système ?", "type": "boolean", "category": "OS"},
-    {"id": "pc_lent", "question": "Le PC est anormalement lent dans ses opérations quotidiennes ?", "type": "boolean", "category": "Performance"},
-    {"id": "beaucoup_applications_ouvertes", "question": "Beaucoup d'applications sont-elles ouvertes simultanément quand le PC est lent ?", "type": "boolean", "category": "Performance"},
-    {"id": "ram_pleine", "question": "Le Gestionnaire des tâches indique-t-il une utilisation RAM supérieure à 85% ?", "type": "boolean", "category": "Performance"},
-    {"id": "demarrage_lent", "question": "Le démarrage de Windows/Linux prend-il bien plus de temps qu'avant ?", "type": "boolean", "category": "Performance"},
-    {"id": "bruits_cliquetis", "question": "Entendez-vous des cliquetis ou grattages répétitifs venant du disque dur ?", "type": "boolean", "category": "Disque"},
-    {"id": "disque_presque_plein", "question": "Le disque système est-il rempli à plus de 85% de sa capacité ?", "type": "boolean", "category": "Disque"},
-    {"id": "fichiers_inaccessibles", "question": "Des fichiers ou dossiers sont-ils devenus inaccessibles ou corrompus ?", "type": "boolean", "category": "Disque"},
-    {"id": "erreurs_lecture_ecriture", "question": "Des erreurs apparaissent-elles lors de l'accès, copie ou sauvegarde de fichiers ?", "type": "boolean", "category": "Disque"},
-    {"id": "ssd_utilise", "question": "Utilisez-vous un SSD (et non un disque dur mécanique HDD) comme disque principal ?", "type": "boolean", "category": "Disque"},
-    {"id": "defragmentation_necessaire", "question": "Votre disque dur n'a pas été défragmenté depuis plusieurs mois ?", "type": "boolean", "category": "Disque"},
-    {"id": "pas_internet", "question": "Vous n'avez aucun accès à Internet depuis ce PC ?", "type": "boolean", "category": "Réseau"},
-    {"id": "wifi_connecte", "question": "L'icône WiFi dans la barre des tâches indique-t-elle une connexion active (pas de croix) ?", "type": "boolean", "category": "Réseau"},
-    {"id": "autres_appareils_fonctionnent", "question": "D'autres appareils (smartphone, tablette) ont-ils Internet sur ce même réseau ?", "type": "boolean", "category": "Réseau"},
-    {"id": "signal_wifi_visible", "question": "Votre réseau WiFi apparaît-il dans la liste des réseaux disponibles ?", "type": "boolean", "category": "Réseau"},
-    {"id": "internet_lent", "question": "La connexion Internet est-elle très lente (pages qui mettent longtemps à charger) ?", "type": "boolean", "category": "Réseau"},
-    {"id": "loin_du_routeur", "question": "Êtes-vous éloigné du routeur (plus de 8-10 mètres ou plusieurs murs entre vous) ?", "type": "boolean", "category": "Réseau"},
-    {"id": "beaucoup_appareils_connectes", "question": "Beaucoup d'appareils sont-ils connectés simultanément à votre réseau WiFi ?", "type": "boolean", "category": "Réseau"},
-    {"id": "connexion_coupe_regulierement", "question": "La connexion WiFi se coupe-t-elle et se reconnecte-t-elle régulièrement ?", "type": "boolean", "category": "Réseau"},
-    {"id": "fai_probleme", "question": "D'autres utilisateurs de votre FAI signalent-ils une panne (Downdetector) ?", "type": "boolean", "category": "Réseau"},
-    {"id": "pilote_recent_installe", "question": "Avez-vous installé un nouveau pilote ou mis à jour un pilote récemment ?", "type": "boolean", "category": "OS"},
-    {"id": "pc_gele", "question": "Le PC se fige complètement (aucune réponse du curseur, clavier, touches) ?", "type": "boolean", "category": "OS"},
-    {"id": "application_specifique", "question": "Le problème survient-il uniquement avec une application spécifique ?", "type": "boolean", "category": "OS"},
-    {"id": "erreurs_demarrage", "question": "Des messages d'erreur apparaissent-ils pendant le démarrage du PC ?", "type": "boolean", "category": "Démarrage"},
-    {"id": "windows_ne_demarre_pas", "question": "Windows refuse de démarrer complètement (boucle ou arrêt avant le bureau) ?", "type": "boolean", "category": "Démarrage"},
-    {"id": "mises_a_jour_echouent", "question": "Les mises à jour Windows échouent-elles systématiquement avec une erreur ?", "type": "boolean", "category": "OS"},
-    {"id": "espace_disque_suffisant", "question": "Avez-vous plus de 10 Go d'espace libre sur le disque système ?", "type": "boolean", "category": "Disque"},
-    {"id": "bruit_ventilateur_fort", "question": "Les ventilateurs font-ils un bruit anormalement fort, surtout en charge ?", "type": "boolean", "category": "Ventilation"},
-    {"id": "clavier_ne_fonctionne_pas", "question": "Le clavier ne répond pas ou certaines touches sont inactives ?", "type": "boolean", "category": "Périphériques"},
-    {"id": "connexion_usb", "question": "Le périphérique problématique est-il connecté en USB ?", "type": "boolean", "category": "Périphériques"},
-    {"id": "souris_ne_fonctionne_pas", "question": "La souris ne fonctionne pas ou son curseur est erratique/absent ?", "type": "boolean", "category": "Périphériques"},
-    {"id": "imprimante_ne_fonctionne_pas", "question": "L'imprimante ne répond pas et les travaux restent bloqués en attente ?", "type": "boolean", "category": "Périphériques"},
-    {"id": "visible_dans_windows", "question": "L'imprimante est-elle visible dans 'Périphériques et imprimantes' Windows ?", "type": "boolean", "category": "Périphériques"},
-    {"id": "pas_de_son", "question": "Il n'y a aucun son, que ce soit dans les applications ou le système ?", "type": "boolean", "category": "Son"},
-    {"id": "pilotes_audio_ok", "question": "Les pilotes audio apparaissent-ils sans erreur dans le Gestionnaire de périphériques ?", "type": "boolean", "category": "Son"},
-    {"id": "volume_non_mute", "question": "Le volume est-il bien activé (non muet) dans la barre des tâches Windows ?", "type": "boolean", "category": "Son"},
-    {"id": "batterie_ne_charge_pas", "question": "La batterie ne se charge pas (icône reste à la même valeur) malgré le chargeur branché ?", "type": "boolean", "category": "Batterie"},
-    {"id": "chargeur_fonctionnel", "question": "Le chargeur fonctionne-t-il normalement avec un autre appareil compatible ?", "type": "boolean", "category": "Batterie"},
-    {"id": "batterie_se_decharge_vite", "question": "La batterie se décharge très rapidement (en moins de 2 heures en usage léger) ?", "type": "boolean", "category": "Batterie"},
-    {"id": "age_batterie_superieur_3ans", "question": "La batterie a-t-elle plus de 3 ans ou plus de 500 cycles de charge ?", "type": "boolean", "category": "Batterie"},
-    {"id": "pc_redémarre_en_boucle", "question": "Le PC redémarre en boucle, n'atteignant jamais le bureau Windows ?", "type": "boolean", "category": "Démarrage"},
-    {"id": "apres_mise_a_jour", "question": "Ce problème a-t-il commencé immédiatement après une mise à jour Windows ?", "type": "boolean", "category": "Démarrage"},
-    {"id": "bips_au_demarrage", "question": "Entendez-vous des bips sonores venant du PC au démarrage (avant Windows) ?", "type": "boolean", "category": "Démarrage"},
-    {"id": "un_bip_long", "question": "Est-ce un seul bip long (ou bip long + bips courts) ?", "type": "boolean", "category": "Démarrage"},
-    {"id": "plusieurs_bips_courts", "question": "Y a-t-il plusieurs bips courts successifs (3, 4, 6 ou plus) ?", "type": "boolean", "category": "Démarrage"},
-    {"id": "message_boot_device_not_found", "question": "Un message 'Boot device not found' ou 'No bootable device' s'affiche-t-il ?", "type": "boolean", "category": "Démarrage"},
-    {"id": "virus_detecte", "question": "Votre antivirus a-t-il détecté ou signalé une menace récemment ?", "type": "boolean", "category": "Sécurité"},
-    {"id": "jeux_lents", "question": "Les jeux vidéo ou applications 3D sont-ils particulièrement lents ou laggy ?", "type": "boolean", "category": "Performance"},
-    {"id": "fps_bas", "question": "Le compteur FPS en jeu est-il anormalement bas (moins de 30 FPS) ?", "type": "boolean", "category": "Performance"},
-    {"id": "parametres_graphiques_eleves", "question": "Les paramètres graphiques du jeu sont-ils réglés au maximum (Ultra/High) ?", "type": "boolean", "category": "Performance"},
-    {"id": "bureau_ne_s_affiche_pas", "question": "Le bureau Windows ne s'affiche pas après la connexion (écran noir ou fond uni) ?", "type": "boolean", "category": "OS"},
-    {"id": "processus_explorer_manquant", "question": "Dans le Gestionnaire des tâches, 'explorer.exe' est-il absent de la liste des processus ?", "type": "boolean", "category": "OS"},
-    {"id": "usb_non_detecte", "question": "Un périphérique USB n'est pas reconnu par Windows (pas de son de connexion) ?", "type": "boolean", "category": "Périphériques"},
-    {"id": "autre_usb_fonctionne", "question": "D'autres périphériques USB fonctionnent-ils correctement sur ce même port USB ?", "type": "boolean", "category": "Périphériques"},
-    {"id": "applications_ne_s_ouvrent_pas", "question": "Des applications refusent de s'ouvrir, affichant une erreur au lancement ?", "type": "boolean", "category": "OS"},
-    {"id": "message_erreur_dll", "question": "Un message mentionnant un fichier '.dll manquant' ou 'introuvable' apparaît-il ?", "type": "boolean", "category": "OS"},
-    {"id": "message_erreur_demarrage_specific", "question": "Un message d'erreur spécifique s'affiche-t-il au démarrage (ex: Inaccessible Boot Device) ?", "type": "boolean", "category": "Démarrage"}
-  ],
-  "question_tree": {
-    "root_questions": [
-      "pc_ne_demarre_pas"
-    ],
-    "children": {
-      "pc_ne_demarre_pas": {
-        "condition": true,
-        "children": ["pas_de_lumiere_led", "bips_au_demarrage"]
-      },
-      "pc_ne_demarre_pas_false": {
-        "parent": "pc_ne_demarre_pas",
-        "condition": false,
-        "children": ["ventilateur_tourne", "ecran_noir", "erreurs_demarrage"]
-      },
-      "bips_au_demarrage": {
-        "condition": true,
-        "children": ["un_bip_long", "plusieurs_bips_courts"]
-      },
-      "ecran_noir": {
-        "condition": true,
-        "children": ["pc_fonctionne", "voyant_ecran_allume", "connexion_hdmi"]
-      },
-      "pc_fonctionne": {
-        "condition": true,
-        "children": ["bureau_ne_s_affiche_pas", "pc_gele", "pc_lent", "pas_de_son", "pas_internet"]
-      },
-      "pc_fonctionne_false": {
-        "parent": "pc_fonctionne",
-        "condition": false,
-        "children": ["ventilateur_tourne", "bips_au_demarrage", "message_boot_device_not_found"]
-      },
-      "pc_lent": {
-        "condition": true,
-        "children": ["demarrage_lent", "beaucoup_applications_ouvertes", "ram_pleine", "disque_presque_plein", "virus_detecte", "ssd_utilise"]
-      },
-      "demarrage_lent": {
-        "condition": true,
-        "children": ["bruits_cliquetis", "defragmentation_necessaire"]
-      },
-      "bruits_cliquetis": {
-        "condition": true,
-        "children": ["fichiers_inaccessibles", "erreurs_lecture_ecriture"]
-      },
-      "pas_internet": {
-        "condition": true,
-        "children": ["wifi_connecte", "signal_wifi_visible", "autres_appareils_fonctionnent"]
-      },
-      "wifi_connecte": {
-        "condition": true,
-        "children": ["connexion_coupe_regulierement"]
-      },
-      "wifi_connecte_false": {
-        "parent": "wifi_connecte",
-        "condition": false,
-        "children": ["signal_wifi_visible"]
-      },
-      "internet_lent": {
-        "condition": true,
-        "children": ["loin_du_routeur", "beaucoup_appareils_connectes", "fai_probleme"]
-      },
-      "pc_gele": {
-        "condition": true,
-        "children": ["application_specifique", "virus_detecte"]
-      },
-      "erreurs_demarrage": {
-        "condition": true,
-        "children": ["windows_ne_demarre_pas", "message_boot_device_not_found", "pc_redémarre_en_boucle", "message_erreur_demarrage_specific", "apres_mise_a_jour"]
-      },
-      "pc_redémarre_en_boucle": {
-        "condition": true,
-        "children": ["apres_mise_a_jour"]
-      },
-      "pas_de_son": {
-        "condition": true,
-        "children": ["volume_non_mute", "pilotes_audio_ok"]
-      },
-      "batterie_ne_charge_pas": {
-        "condition": true,
-        "children": ["chargeur_fonctionnel"]
-      },
-      "batterie_se_decharge_vite": {
-        "condition": true,
-        "children": ["age_batterie_superieur_3ans"]
-      },
-      "mises_a_jour_echouent": {
-        "condition": true,
-        "children": ["espace_disque_suffisant"]
-      },
-      "bureau_ne_s_affiche_pas": {
-        "condition": true,
-        "children": ["processus_explorer_manquant"]
-      },
-      "clavier_ne_fonctionne_pas": {
-        "condition": true,
-        "children": ["connexion_usb"]
-      },
-      "souris_ne_fonctionne_pas": {
-        "condition": true,
-        "children": ["connexion_usb"]
-      },
-      "imprimante_ne_fonctionne_pas": {
-        "condition": true,
-        "children": ["visible_dans_windows"]
-      },
-      "usb_non_detecte": {
-        "condition": true,
-        "children": ["autre_usb_fonctionne"]
-      },
-      "applications_ne_s_ouvrent_pas": {
-        "condition": true,
-        "children": ["message_erreur_dll", "virus_detecte"]
-      },
-      "jeux_lents": {
-        "condition": true,
-        "children": ["fps_bas", "parametres_graphiques_eleves", "surchauffe"]
-      },
-      "virus_detecte": {
-        "condition": true,
-        "children": ["fichiers_inaccessibles", "applications_ne_s_ouvrent_pas"]
-      }
-    }
-  },
-  "categories": [
-    {"id": "Alimentation", "label": "Alimentation & Courant", "icon": "⚡", "color": "#f59e0b"},
-    {"id": "Ecran", "label": "Écran & Affichage", "icon": "🖥️", "color": "#00e5ff"},
-    {"id": "RAM", "label": "Mémoire RAM", "icon": "🔧", "color": "#7c3aed"},
-    {"id": "Disque dur", "label": "Stockage & Disques", "icon": "💾", "color": "#10b981"},
-    {"id": "Réseau", "label": "Réseau & Internet", "icon": "🌐", "color": "#3b82f6"},
-    {"id": "OS / Logiciel", "label": "Système & Logiciels", "icon": "🖥️", "color": "#8b5cf6"},
-    {"id": "Ventilation", "label": "Refroidissement", "icon": "🌀", "color": "#06b6d4"},
-    {"id": "Périphériques", "label": "Périphériques USB", "icon": "🖱️", "color": "#ec4899"},
-    {"id": "Son", "label": "Audio & Son", "icon": "🔊", "color": "#f97316"},
-    {"id": "Batterie", "label": "Batterie (laptop)", "icon": "🔋", "color": "#84cc16"},
-    {"id": "Démarrage", "label": "Démarrage & BIOS", "icon": "🔌", "color": "#ef4444"},
-    {"id": "Performance", "label": "Performances", "icon": "⚡", "color": "#eab308"},
-    {"id": "Sécurité", "label": "Sécurité & Malware", "icon": "🛡️", "color": "#dc2626"},
-    {"id": "Overclocking", "label": "Overclocking", "icon": "🔥", "color": "#f97316"}
+    {"id": "pc_ne_demarre_pas",           "question": "Quand vous appuyez sur le bouton marche, le PC ne réagit pas du tout — aucune lumière, aucun son ?",                             "category": "Alimentation"},
+    {"id": "pas_de_lumiere_led",          "question": "Aucun voyant lumineux n'est allumé sur le PC ou son boîtier ?",                                                                  "category": "Alimentation"},
+    {"id": "ventilateur_tourne",          "question": "Entendez-vous les ventilateurs démarrer quand vous appuyez sur le bouton ?",                                                      "category": "Alimentation"},
+    {"id": "bips_au_demarrage",           "question": "Le PC émet-il des petits bips sonores au moment du démarrage (avant que Windows apparaisse) ?",                                   "category": "Démarrage"},
+    {"id": "un_bip_long",                 "question": "Ces bips sont-ils longs et graves (pas plusieurs bips courts rapides) ?",                                                         "category": "Démarrage"},
+    {"id": "plusieurs_bips_courts",       "question": "Y a-t-il plusieurs bips courts qui se répètent rapidement ?",                                                                     "category": "Démarrage"},
+    {"id": "pc_s_eteint_seul",            "question": "Le PC s'éteint tout seul sans que vous ne fassiez rien — comme si quelqu'un l'avait débranché ?",                                "category": "Alimentation"},
+    {"id": "surchauffe",                  "question": "Le PC devient-il très chaud au toucher ou les ventilateurs s'emballent fortement juste avant le problème ?",                     "category": "Ventilation"},
+    {"id": "bruit_ventilateur_fort",      "question": "Les ventilateurs font-ils un bruit fort et continu, même au repos ?",                                                             "category": "Ventilation"},
+    {"id": "probleme_alim",               "question": "Avez-vous récemment ajouté une carte graphique ou un composant gourmand en énergie sans changer l'alimentation ?",               "category": "Alimentation"},
+
+    {"id": "ecran_noir",                  "question": "L'écran reste entièrement noir — même si le PC semble allumé (bruit de ventilateurs, lumières) ?",                               "category": "Écran"},
+    {"id": "pc_fonctionne",               "question": "Pendant cet écran noir, entendez-vous le PC fonctionner (ventilateurs, sons) ?",                                                 "category": "Écran"},
+    {"id": "voyant_ecran_allume",         "question": "Le petit voyant du moniteur est-il allumé (pas en veille) ?",                                                                    "category": "Écran"},
+    {"id": "connexion_hdmi",              "question": "Utilisez-vous un câble HDMI pour relier le PC à l'écran ?",                                                                      "category": "Écran"},
+    {"id": "ecran_pixelise",              "question": "L'image à l'écran est-elle abîmée — pixels colorés, blocs, ou image déformée ?",                                                 "category": "Écran"},
+    {"id": "artefacts_visuels",           "question": "Voyez-vous des lignes, des formes étranges ou des taches qui n'ont rien à faire là ?",                                           "category": "Écran"},
+    {"id": "ecran_scintille",             "question": "L'écran clignote ou scintille — même légèrement ?",                                                                              "category": "Écran"},
+
+    {"id": "pc_lent",                     "question": "Le PC est nettement plus lent qu'avant — ouvrir une application prend une éternité ?",                                            "category": "Performance"},
+    {"id": "demarrage_lent",              "question": "Le démarrage de Windows est devenu beaucoup plus long que d'habitude ?",                                                          "category": "Performance"},
+    {"id": "beaucoup_applications_ouvertes", "question": "Avez-vous beaucoup d'applications ou d'onglets ouverts en même temps quand c'est lent ?",                                     "category": "Performance"},
+    {"id": "ram_pleine",                  "question": "Le gestionnaire des tâches (Ctrl+Alt+Suppr) indique-t-il que la mémoire est utilisée à plus de 85 % ?",                          "category": "Performance"},
+    {"id": "disque_presque_plein",        "question": "Le disque dur est-il presque plein (moins de 10-15 % d'espace libre) ?",                                                         "category": "Stockage"},
+    {"id": "virus_detecte",               "question": "Votre antivirus a-t-il récemment affiché une alerte ou détecté une menace ?",                                                    "category": "Sécurité"},
+
+    {"id": "bruits_cliquetis",            "question": "Entendez-vous des cliquetis, grattements ou craquements venant de l'intérieur du PC (côté disque dur) ?",                       "category": "Stockage"},
+    {"id": "fichiers_inaccessibles",      "question": "Des fichiers ou dossiers sont-ils devenus impossibles à ouvrir ou ont-ils disparu ?",                                            "category": "Stockage"},
+    {"id": "erreurs_lecture_ecriture",    "question": "Des messages d'erreur apparaissent-ils quand vous essayez de copier, enregistrer ou ouvrir des fichiers ?",                      "category": "Stockage"},
+    {"id": "ssd_utilise",                 "question": "Votre PC utilise-t-il un SSD (disque rapide) plutôt qu'un disque dur mécanique traditionnel ?",                                  "category": "Stockage"},
+
+    {"id": "ecran_bleu_bsod",             "question": "Un écran bleu avec un message d'erreur (appelé BSOD) est-il apparu ?",                                                           "category": "Système"},
+    {"id": "redemarrages_aleatoires",     "question": "Après cet écran bleu, le PC redémarre-t-il tout seul ?",                                                                         "category": "Système"},
+    {"id": "pilote_recent_installe",      "question": "Le problème a-t-il commencé juste après une mise à jour ou l'installation d'un pilote ?",                                        "category": "Système"},
+
+    {"id": "pc_gele",                     "question": "Le PC se fige complètement — le curseur ne bouge plus, rien ne répond ?",                                                        "category": "Système"},
+    {"id": "application_specifique",      "question": "Cela arrive-t-il uniquement avec une application particulière (et pas avec les autres) ?",                                       "category": "Système"},
+
+    {"id": "erreurs_demarrage",           "question": "Un message d'erreur s'affiche-t-il pendant le démarrage, avant que Windows soit complètement chargé ?",                         "category": "Démarrage"},
+    {"id": "windows_ne_demarre_pas",      "question": "Windows refuse de démarrer — il tourne en boucle ou s'arrête avant d'afficher le bureau ?",                                      "category": "Démarrage"},
+    {"id": "message_boot_device_not_found","question": "Voyez-vous un message du style 'Boot device not found' ou 'No bootable device' ?",                                              "category": "Démarrage"},
+    {"id": "pc_redémarre_en_boucle",      "question": "Le PC redémarre en boucle sans jamais afficher le bureau Windows ?",                                                             "category": "Démarrage"},
+    {"id": "apres_mise_a_jour",           "question": "Ce problème a-t-il démarré juste après une mise à jour Windows ?",                                                               "category": "Démarrage"},
+    {"id": "message_erreur_demarrage_specific", "question": "Voyez-vous un message d'erreur spécifique écrit en blanc sur fond bleu ou noir au démarrage ?",                           "category": "Démarrage"},
+
+    {"id": "pas_internet",                "question": "Ce PC n'arrive pas du tout à accéder à Internet ?",                                                                              "category": "Réseau"},
+    {"id": "wifi_connecte",               "question": "L'icône Wi-Fi dans la barre des tâches montre-t-elle une connexion (pas de croix ou point d'exclamation) ?",                    "category": "Réseau"},
+    {"id": "signal_wifi_visible",         "question": "Votre réseau Wi-Fi apparaît-il dans la liste des réseaux disponibles ?",                                                         "category": "Réseau"},
+    {"id": "autres_appareils_fonctionnent","question": "D'autres appareils (téléphone, tablette) arrivent-ils à aller sur Internet avec ce même réseau ?",                             "category": "Réseau"},
+    {"id": "connexion_coupe_regulierement","question": "La connexion Wi-Fi se coupe-t-elle et se reconnecte-t-elle toute seule régulièrement ?",                                       "category": "Réseau"},
+
+    {"id": "internet_lent",               "question": "Internet fonctionne mais c'est très lent — les pages mettent longtemps à charger ?",                                             "category": "Réseau"},
+    {"id": "loin_du_routeur",             "question": "Êtes-vous loin de la box/routeur — plus de 8 mètres ou avec plusieurs murs entre vous ?",                                        "category": "Réseau"},
+    {"id": "beaucoup_appareils_connectes","question": "Beaucoup d'appareils utilisent-ils ce même réseau en même temps (streaming, téléchargements) ?",                                "category": "Réseau"},
+    {"id": "fai_probleme",               "question": "D'autres personnes de votre quartier ont-elles des problèmes Internet avec le même opérateur ?",                                 "category": "Réseau"},
+
+    {"id": "mises_a_jour_echouent",       "question": "Les mises à jour Windows échouent-elles systématiquement avec un message d'erreur ?",                                            "category": "Système"},
+    {"id": "espace_disque_suffisant",     "question": "Avez-vous encore plus de 10 Go d'espace libre sur le disque où Windows est installé ?",                                          "category": "Stockage"},
+
+    {"id": "bureau_ne_s_affiche_pas",     "question": "Après vous être connecté, le bureau Windows n'apparaît pas — fond noir ou fond uni sans icônes ?",                              "category": "Système"},
+    {"id": "processus_explorer_manquant", "question": "Dans le gestionnaire des tâches, le programme 'explorer.exe' est-il absent de la liste ?",                                       "category": "Système"},
+
+    {"id": "applications_ne_s_ouvrent_pas","question": "Des applications refusent de s'ouvrir et affichent un message d'erreur ?",                                                     "category": "Système"},
+    {"id": "message_erreur_dll",          "question": "Le message d'erreur mentionne-t-il un fichier se terminant par '.dll' comme manquant ?",                                         "category": "Système"},
+
+    {"id": "pas_de_son",                  "question": "Il n'y a aucun son — que ce soit dans les vidéos, la musique ou les sons du système ?",                                          "category": "Audio"},
+    {"id": "volume_non_mute",             "question": "Le volume est-il activé et non coupé (icône haut-parleur sans barrette rouge dans la barre des tâches) ?",                       "category": "Audio"},
+    {"id": "pilotes_audio_ok",            "question": "Dans le gestionnaire des périphériques, la carte son apparaît-elle sans croix rouge ni point d'exclamation ?",                   "category": "Audio"},
+
+    {"id": "clavier_ne_fonctionne_pas",   "question": "Le clavier ne répond pas du tout, ou certaines touches sont complètement inactives ?",                                           "category": "Périphériques"},
+    {"id": "souris_ne_fonctionne_pas",    "question": "La souris ne répond pas ou le curseur ne bouge plus / bouge de façon erratique ?",                                               "category": "Périphériques"},
+    {"id": "connexion_usb",               "question": "Ce périphérique est-il connecté via un câble USB ?",                                                                             "category": "Périphériques"},
+    {"id": "usb_non_detecte",             "question": "Un périphérique USB branché n'est pas reconnu — Windows ne fait aucun son de connexion ?",                                       "category": "Périphériques"},
+    {"id": "autre_usb_fonctionne",        "question": "D'autres appareils USB fonctionnent-ils normalement sur ce même port ?",                                                         "category": "Périphériques"},
+    {"id": "imprimante_ne_fonctionne_pas","question": "L'imprimante ne réagit pas quand vous lancez une impression — les travaux restent bloqués ?",                                   "category": "Périphériques"},
+    {"id": "visible_dans_windows",        "question": "L'imprimante apparaît-elle dans 'Périphériques et imprimantes' dans les paramètres Windows ?",                                  "category": "Périphériques"},
+
+    {"id": "batterie_ne_charge_pas",      "question": "La batterie ne se recharge pas du tout, même avec le chargeur branché ?",                                                        "category": "Batterie"},
+    {"id": "chargeur_fonctionnel",        "question": "Ce chargeur fonctionne-t-il avec un autre appareil compatible ?",                                                                "category": "Batterie"},
+    {"id": "batterie_se_decharge_vite",   "question": "La batterie se vide très vite — moins de 2 heures en utilisation normale ?",                                                     "category": "Batterie"},
+    {"id": "age_batterie_superieur_3ans", "question": "La batterie a-t-elle plus de 3 ans, ou plus de 500 cycles de recharge ?",                                                        "category": "Batterie"},
+
+    {"id": "jeux_lents",                  "question": "Les jeux vidéo ou programmes 3D sont-ils particulièrement lents ou saccadés ?",                                                  "category": "Performance"},
+    {"id": "fps_bas",                     "question": "Le compteur d'images par seconde (FPS) est-il très bas — moins de 30 FPS ?",                                                     "category": "Performance"},
+    {"id": "parametres_graphiques_eleves","question": "Les paramètres graphiques du jeu sont-ils réglés au maximum (Ultra ou Très élevé) ?",                                            "category": "Performance"},
+
+    {"id": "pc_overclocked",              "question": "Avez-vous augmenté manuellement la fréquence du processeur, de la RAM ou de la carte graphique (overclocking) ?",               "category": "Système"}
   ]
 }

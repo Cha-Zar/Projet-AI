@@ -1,446 +1,347 @@
 {
   "rules": [
     {
-      "id": "R01",
-      "category": "Alimentation",
+      "id": "R01", "category": "Alimentation", "severity": "critical",
       "conditions": {"pc_ne_demarre_pas": true, "pas_de_lumiere_led": true},
-      "conclusion": "Panne d'alimentation (câble ou bloc d'alimentation défectueux)",
-      "solution": "Vérifiez le câble d'alimentation, testez avec une autre prise. Si le problème persiste, remplacez le bloc d'alimentation.",
-      "confidence": 0.95
+      "conclusion": "Panne d'alimentation totale — câble ou bloc d'alimentation hors service",
+      "solution": "1. Vérifiez le câble secteur et testez une autre prise. 2. Vérifiez l'interrupteur derrière le boîtier (position I). 3. Testez avec un autre câble d'alimentation. 4. Si rien ne fonctionne → le bloc d'alimentation est probablement défectueux, faites-le remplacer.",
+      "confidence": 0.96, "sources": ["Intel ATX spec", "PCIe power delivery standard"]
     },
     {
-      "id": "R02",
-      "category": "Alimentation",
+      "id": "R02", "category": "Alimentation", "severity": "critical",
       "conditions": {"pc_ne_demarre_pas": true, "pas_de_lumiere_led": false, "ventilateur_tourne": false},
-      "conclusion": "Bloc d'alimentation défaillant ou carte mère morte",
-      "solution": "Testez avec un autre bloc d'alimentation. Si cela ne résout pas le problème, la carte mère est probablement défectueuse.",
+      "conclusion": "Le bloc d'alimentation démarre mais s'arrête — court-circuit ou carte mère défectueuse",
+      "solution": "1. Débranchez tous les périphériques internes sauf une barrette de RAM. 2. Essayez de démarrer. 3. Si toujours KO → bloc d'alimentation ou carte mère à remplacer. Consultez un technicien.",
+      "confidence": 0.87, "sources": ["ASUS RMA guidelines"]
+    },
+    {
+      "id": "R03", "category": "Alimentation", "severity": "high",
+      "conditions": {"pc_s_eteint_seul": true, "surchauffe": true},
+      "conclusion": "Extinction thermique de sécurité — le PC s'éteint pour se protéger de la chaleur",
+      "solution": "1. Laissez le PC refroidir 30 min. 2. Vérifiez que les grilles de ventilation ne sont pas bouchées. 3. Nettoyez l'intérieur avec de l'air comprimé. 4. Si le problème persiste → la pâte thermique du processeur est à remplacer.",
+      "confidence": 0.93, "sources": ["Intel TJ Max spec", "AMD Tdie documentation"]
+    },
+    {
+      "id": "R04", "category": "Alimentation", "severity": "medium",
+      "conditions": {"pc_s_eteint_seul": true, "surchauffe": false, "probleme_alim": true},
+      "conclusion": "Alimentation insuffisante pour la configuration — extinctions aléatoires sous charge",
+      "solution": "1. Vérifiez la puissance de votre bloc d'alimentation (watts). 2. Comparez avec la consommation de vos composants. 3. Un bloc d'alimentation plus puissant est probablement nécessaire.",
       "confidence": 0.85
     },
     {
-      "id": "R03",
-      "category": "Alimentation",
-      "conditions": {"pc_s_eteint_seul": true, "surchauffe": true},
-      "conclusion": "Surchauffe  extinction thermique de protection",
-      "solution": "Nettoyez les ventilateurs et le dissipateur thermique. Remplacez la pâte thermique. Assurez une bonne ventilation du boîtier.",
+      "id": "R05", "category": "Démarrage", "severity": "critical",
+      "conditions": {"bips_au_demarrage": true, "un_bip_long": true},
+      "conclusion": "Problème de mémoire RAM détecté par le BIOS au démarrage",
+      "solution": "1. Éteignez le PC et débranchez-le. 2. Retirez et réinsérez les barrettes RAM. 3. Testez avec une seule barrette. 4. Si le problème persiste → barrette RAM défectueuse à remplacer.",
+      "confidence": 0.92, "sources": ["AMI BIOS POST codes"]
+    },
+    {
+      "id": "R06", "category": "Démarrage", "severity": "critical",
+      "conditions": {"bips_au_demarrage": true, "plusieurs_bips_courts": true},
+      "conclusion": "Problème matériel grave détecté par le BIOS — carte graphique ou carte mère",
+      "solution": "1. Éteignez et débranchez le PC. 2. Retirez et réinsérez la carte graphique. 3. Vérifiez tous les câbles internes. 4. Consultez le manuel de la carte mère pour interpréter le code de bips précis.",
+      "confidence": 0.86, "sources": ["BIOS POST codes reference"]
+    },
+    {
+      "id": "R07", "category": "Écran", "severity": "high",
+      "conditions": {"ecran_noir": true, "pc_fonctionne": true, "voyant_ecran_allume": true},
+      "conclusion": "Signal vidéo absent — câble d'affichage débranché ou carte graphique défaillante",
+      "solution": "1. Vérifiez que le câble HDMI/DP est branché sur la carte graphique (pas la carte mère si vous avez un GPU dédié). 2. Testez avec un autre câble. 3. Essayez une autre entrée sur le moniteur. 4. Testez avec un autre écran.",
+      "confidence": 0.89
+    },
+    {
+      "id": "R08", "category": "Écran", "severity": "medium",
+      "conditions": {"ecran_noir": true, "pc_fonctionne": true, "voyant_ecran_allume": false},
+      "conclusion": "Le moniteur n'est pas alimenté ou est en panne",
+      "solution": "1. Vérifiez le câble d'alimentation du moniteur. 2. Appuyez sur le bouton power du moniteur. 3. Testez le moniteur avec un autre PC ou appareil. 4. Si toujours noir → moniteur probablement défectueux.",
+      "confidence": 0.91
+    },
+    {
+      "id": "R09", "category": "Écran", "severity": "high",
+      "conditions": {"ecran_pixelise": true, "artefacts_visuels": true, "surchauffe": true},
+      "conclusion": "Carte graphique en surchauffe — erreurs visuelles causées par une température trop élevée",
+      "solution": "1. Vérifiez la température GPU avec HWMonitor (normal < 85°C en charge). 2. Nettoyez le ventilateur de la carte graphique. 3. Vérifiez que le ventilateur tourne bien. 4. Si le problème persiste → la pâte thermique de la GPU est à remplacer.",
+      "confidence": 0.90
+    },
+    {
+      "id": "R10", "category": "Écran", "severity": "medium",
+      "conditions": {"ecran_pixelise": true, "artefacts_visuels": true, "surchauffe": false},
+      "conclusion": "Mémoire vidéo (VRAM) défaillante — la carte graphique présente des défauts permanents",
+      "solution": "1. Mettez à jour les pilotes graphiques. 2. Testez avec des paramètres graphiques réduits. 3. Si les artefacts persistent en dehors des jeux → la carte graphique est probablement à remplacer.",
+      "confidence": 0.84
+    },
+    {
+      "id": "R11", "category": "Écran", "severity": "medium",
+      "conditions": {"ecran_scintille": true, "pilote_recent_installe": true},
+      "conclusion": "Conflit de pilote graphique — le nouveau pilote cause le scintillement",
+      "solution": "1. Allez dans Paramètres > Système > Affichage avancé. 2. Dans le Gestionnaire de périphériques, revenez à la version précédente du pilote. 3. Ou utilisez DDU (Display Driver Uninstaller) pour nettoyer et réinstaller.",
+      "confidence": 0.91
+    },
+    {
+      "id": "R12", "category": "Écran", "severity": "low",
+      "conditions": {"ecran_scintille": true, "pilote_recent_installe": false},
+      "conclusion": "Câble d'affichage dégradé ou taux de rafraîchissement incorrect",
+      "solution": "1. Remplacez le câble HDMI/DisplayPort. 2. Vérifiez le taux de rafraîchissement : clic droit bureau > Paramètres d'affichage > Paramètres avancés > choisissez 60 Hz ou la valeur native de votre écran.",
+      "confidence": 0.82
+    },
+    {
+      "id": "R13", "category": "RAM", "severity": "high",
+      "conditions": {"ecran_bleu_bsod": true, "redemarrages_aleatoires": true},
+      "conclusion": "Mémoire RAM défaillante ou mal insérée — erreurs mémoire causant des plantages",
+      "solution": "1. Éteignez le PC et retirez/réinsérez les barrettes RAM. 2. Testez avec une seule barrette à la fois. 3. Téléchargez MemTest86 (clé USB bootable) pour tester la RAM. 4. Si des erreurs sont trouvées → remplacez la barrette défectueuse.",
+      "confidence": 0.85, "sources": ["MemTest86 methodology", "JEDEC DDR5 standard"]
+    },
+    {
+      "id": "R14", "category": "Système", "severity": "high",
+      "conditions": {"ecran_bleu_bsod": true, "pilote_recent_installe": true, "redemarrages_aleatoires": false},
+      "conclusion": "Pilote incompatible — le nouveau pilote provoque un plantage du système",
+      "solution": "1. Redémarrez en mode sans échec (F8 au démarrage). 2. Désinstallez le pilote installé récemment. 3. Redémarrez normalement. 4. Téléchargez la version officielle stable depuis le site du fabricant.",
       "confidence": 0.92
     },
     {
-      "id": "R04",
-      "category": "Ecran",
-      "conditions": {"ecran_noir": true, "pc_fonctionne": true, "voyant_ecran_allume": true},
-      "conclusion": "Câble vidéo débranché ou carte graphique défaillante",
-      "solution": "Vérifiez le câble HDMI/VGA/DisplayPort. Testez avec un autre câble ou moniteur. Réinstallez la carte graphique.",
-      "confidence": 0.88
+      "id": "R15", "category": "Stockage", "severity": "critical",
+      "conditions": {"bruits_cliquetis": true, "fichiers_inaccessibles": true},
+      "conclusion": "URGENCE — Disque dur mécanique en train de tomber en panne",
+      "solution": "⚠️ SAUVEGARDEZ VOS DONNÉES IMMÉDIATEMENT sur une clé USB ou disque externe. 1. Installez CrystalDiskInfo pour vérifier la santé du disque. 2. Si indiqué 'Mauvais' ou 'Attention' → remplacez le disque rapidement. 3. Migrez vers un SSD.",
+      "confidence": 0.97, "sources": ["Backblaze HDD failure study 2023"]
     },
     {
-      "id": "R05",
-      "category": "Ecran",
-      "conditions": {"ecran_noir": true, "pc_fonctionne": true, "voyant_ecran_allume": false},
-      "conclusion": "Écran défectueux ou problème d'alimentation du moniteur",
-      "solution": "Vérifiez l'alimentation du moniteur. Testez avec un autre écran. Si l'écran est défectueux, remplacez-le.",
+      "id": "R16", "category": "Stockage", "severity": "medium",
+      "conditions": {"demarrage_lent": true, "disque_presque_plein": true, "bruits_cliquetis": false},
+      "conclusion": "Disque presque plein — performances fortement dégradées par manque d'espace",
+      "solution": "1. Videz la corbeille. 2. Supprimez les fichiers temporaires (tapez '%temp%' dans la barre de recherche). 3. Désinstallez les programmes inutilisés. 4. Déplacez des fichiers vers un disque externe. Pour un SSD, gardez toujours 15 % d'espace libre.",
+      "confidence": 0.89
+    },
+    {
+      "id": "R17", "category": "Stockage", "severity": "high",
+      "conditions": {"erreurs_lecture_ecriture": true, "fichiers_inaccessibles": true},
+      "conclusion": "Secteurs défectueux sur le disque — zones endommagées causant des erreurs d'accès",
+      "solution": "1. Ouvrez une invite de commandes en administrateur. 2. Tapez : chkdsk C: /f /r (remplacez C par votre lettre de disque). 3. Sauvegardez vos données. 4. Envisagez le remplacement du disque.",
       "confidence": 0.90
     },
     {
-      "id": "R06",
-      "category": "Ecran",
-      "conditions": {"ecran_pixelise": true, "artefacts_visuels": true},
-      "conclusion": "Carte graphique surchauffée ou défaillante",
-      "solution": "Vérifiez la température de la GPU. Nettoyez le ventilateur de la carte graphique. Mettez à jour les pilotes graphiques. Envisagez le remplacement si le problème persiste.",
+      "id": "R18", "category": "Réseau", "severity": "high",
+      "conditions": {"pas_internet": true, "wifi_connecte": true, "autres_appareils_fonctionnent": true},
+      "conclusion": "Problème de configuration réseau sur ce PC — DNS ou adresse IP corrompus",
+      "solution": "1. Ouvrez une invite de commandes en administrateur. 2. Tapez : ipconfig /flushdns puis appuyez sur Entrée. 3. Tapez : netsh winsock reset puis redémarrez. 4. Si toujours KO → changez les DNS en 1.1.1.1 (Cloudflare) dans vos paramètres réseau.",
       "confidence": 0.87
     },
     {
-      "id": "R07",
-      "category": "RAM",
-      "conditions": {"ecran_bleu_bsod": true, "redemarrages_aleatoires": true},
-      "conclusion": "Problème de mémoire RAM (modules défectueux ou mal insérés)",
-      "solution": "Réinsérez les barrettes RAM. Testez une barrette à la fois. Lancez MemTest86 pour diagnostiquer. Remplacez les barrettes défectueuses.",
+      "id": "R19", "category": "Réseau", "severity": "high",
+      "conditions": {"pas_internet": true, "wifi_connecte": false, "signal_wifi_visible": true},
+      "conclusion": "Problème de connexion WiFi — mot de passe incorrect ou pilote réseau défaillant",
+      "solution": "1. Oubliez le réseau WiFi et reconnectez-vous avec le bon mot de passe. 2. Redémarrez votre box/routeur. 3. Mettez à jour les pilotes de la carte réseau depuis le Gestionnaire de périphériques.",
+      "confidence": 0.84
+    },
+    {
+      "id": "R20", "category": "Réseau", "severity": "high",
+      "conditions": {"pas_internet": true, "wifi_connecte": false, "signal_wifi_visible": false},
+      "conclusion": "Box/routeur hors service ou zone sans signal WiFi",
+      "solution": "1. Débranchez votre box 60 secondes puis rebranchez. 2. Vérifiez les voyants de la box (ils doivent être verts). 3. Consultez le site ou l'appli de votre opérateur pour vérifier une panne. 4. Utilisez un câble Ethernet en attendant.",
+      "confidence": 0.90
+    },
+    {
+      "id": "R21", "category": "Réseau", "severity": "high",
+      "conditions": {"pas_internet": true, "wifi_connecte": true, "autres_appareils_fonctionnent": false},
+      "conclusion": "Panne Internet générale — votre box ou votre opérateur est en panne",
+      "solution": "1. Redémarrez la box (débranchez 60 secondes). 2. Vérifiez les voyants de la box. 3. Consultez Downdetector.fr pour votre opérateur. 4. Appelez le support de votre opérateur si la panne persiste plus de 30 min.",
+      "confidence": 0.89
+    },
+    {
+      "id": "R22", "category": "Réseau", "severity": "medium",
+      "conditions": {"internet_lent": true, "loin_du_routeur": true},
+      "conclusion": "Signal WiFi faible — distance ou obstacles réduisent la vitesse de connexion",
+      "solution": "1. Rapprochez-vous de la box/routeur. 2. Essayez un câble Ethernet pour une connexion stable et rapide. 3. Installez un répéteur WiFi ou un adaptateur CPL si la distance est inévitable.",
+      "confidence": 0.87
+    },
+    {
+      "id": "R23", "category": "Réseau", "severity": "medium",
+      "conditions": {"internet_lent": true, "loin_du_routeur": false, "beaucoup_appareils_connectes": true},
+      "conclusion": "Bande passante saturée — trop d'appareils partagent la connexion simultanément",
+      "solution": "1. Déconnectez les appareils qui ne sont pas utilisés. 2. Arrêtez les téléchargements et streamings en cours. 3. Utilisez un câble Ethernet pour votre PC. 4. Si le problème est récurrent → envisagez un abonnement plus rapide.",
+      "confidence": 0.82
+    },
+    {
+      "id": "R24", "category": "Réseau", "severity": "medium",
+      "conditions": {"connexion_coupe_regulierement": true, "wifi_connecte": true},
+      "conclusion": "Interférences WiFi ou mise en veille de la carte réseau",
+      "solution": "1. Allez dans Gestionnaire de périphériques > Cartes réseau > votre carte WiFi > Propriétés > Gestion de l'alimentation → décochez 'Autoriser la mise en veille'. 2. Changez le canal WiFi de votre box (préférez canal 1, 6 ou 11).",
+      "confidence": 0.84
+    },
+    {
+      "id": "R25", "category": "Performance", "severity": "medium",
+      "conditions": {"pc_lent": true, "beaucoup_applications_ouvertes": true},
+      "conclusion": "Surcharge du processeur ou de la RAM — trop de programmes ouverts simultanément",
+      "solution": "1. Fermez les applications inutiles. 2. Ouvrez le Gestionnaire des tâches (Ctrl+Alt+Suppr) et terminez les processus qui consomment le plus. 3. Désactivez les programmes au démarrage : Gestionnaire des tâches > Démarrage.",
+      "confidence": 0.88
+    },
+    {
+      "id": "R26", "category": "Performance", "severity": "medium",
+      "conditions": {"pc_lent": true, "ram_pleine": true, "beaucoup_applications_ouvertes": false},
+      "conclusion": "Mémoire RAM insuffisante — le PC utilise le disque comme mémoire de secours, ce qui est très lent",
+      "solution": "1. Redémarrez le PC (libère la mémoire). 2. Dans le Gestionnaire des tâches, identifiez les programmes qui consomment le plus de RAM. 3. Si le problème est permanent → envisagez d'ajouter une barrette de RAM.",
       "confidence": 0.83
     },
     {
-      "id": "R08",
-      "category": "RAM",
-      "conditions": {"pc_lent": true, "beaucoup_applications_ouvertes": false, "ram_pleine": true},
-      "conclusion": "Mémoire RAM insuffisante ou défaillante",
-      "solution": "Fermez les applications inutiles. Augmentez la RAM physique. Vérifiez les processus gourmands en mémoire dans le gestionnaire des tâches.",
-      "confidence": 0.80
+      "id": "R27", "category": "Performance", "severity": "high",
+      "conditions": {"pc_lent": true, "virus_detecte": true},
+      "conclusion": "Infection par malware — un programme malveillant consomme les ressources du PC",
+      "solution": "1. Déconnectez Internet. 2. Lancez un scan complet avec Windows Defender ou Malwarebytes (gratuit). 3. Supprimez les menaces trouvées. 4. Redémarrez et relancez un second scan pour confirmation.",
+      "confidence": 0.92
     },
     {
-      "id": "R09",
-      "category": "Disque dur",
+      "id": "R28", "category": "Stockage", "severity": "critical",
       "conditions": {"pc_lent": true, "demarrage_lent": true, "bruits_cliquetis": true},
-      "conclusion": "Disque dur mécanique en train de tomber en panne",
-      "solution": "URGENT: Sauvegardez vos données immédiatement. Lancez CrystalDiskInfo pour vérifier la santé du disque. Remplacez le HDD par un SSD.",
+      "conclusion": "Disque dur mécanique en fin de vie — les cliquetis annoncent une panne imminente",
+      "solution": "⚠️ SAUVEGARDEZ VOS DONNÉES MAINTENANT. 1. Utilisez CrystalDiskInfo pour évaluer l'état du disque. 2. Planifiez le remplacement par un SSD — gain de vitesse x5 à x10 garanti. 3. Ne tardez pas, la panne peut survenir à tout moment.",
       "confidence": 0.95
     },
     {
-      "id": "R10",
-      "category": "Disque dur",
-      "conditions": {"demarrage_lent": true, "bruits_cliquetis": false, "disque_presque_plein": true},
-      "conclusion": "Disque dur presque plein  performances dégradées",
-      "solution": "Libérez de l'espace disque. Désinstallez les programmes inutiles. Déplacez des fichiers vers un stockage externe. Videz la corbeille et les fichiers temporaires.",
-      "confidence": 0.88
-    },
-    {
-      "id": "R11",
-      "category": "Disque dur",
-      "conditions": {"fichiers_inaccessibles": true, "erreurs_lecture_ecriture": true},
-      "conclusion": "Secteurs défectueux sur le disque dur",
-      "solution": "Lancez CHKDSK (Windows) ou fsck (Linux). Sauvegardez vos données. Envisagez le remplacement du disque.",
-      "confidence": 0.90
-    },
-    {
-      "id": "R12",
-      "category": "Réseau",
-      "conditions": {"pas_internet": true, "wifi_connecte": true, "autres_appareils_fonctionnent": true},
-      "conclusion": "Problème de configuration réseau sur cet appareil (DNS ou IP)",
-      "solution": "Lancez 'ipconfig /flushdns' puis 'ipconfig /renew'. Changez les DNS pour 8.8.8.8 (Google) ou 1.1.1.1 (Cloudflare). Réinitialisez la pile TCP/IP.",
-      "confidence": 0.85
-    },
-    {
-      "id": "R13",
-      "category": "Réseau",
-      "conditions": {"pas_internet": true, "wifi_connecte": false, "signal_wifi_visible": true},
-      "conclusion": "Problème d'authentification WiFi ou carte réseau défaillante",
-      "solution": "Vérifiez le mot de passe WiFi. Oubliez et reconnectez le réseau. Mettez à jour les pilotes de la carte réseau. Redémarrez le routeur.",
-      "confidence": 0.82
-    },
-    {
-      "id": "R14",
-      "category": "Réseau",
-      "conditions": {"pas_internet": true, "wifi_connecte": false, "signal_wifi_visible": false},
-      "conclusion": "Routeur/box en panne ou zone morte WiFi",
-      "solution": "Redémarrez le routeur (débranchez 30 secondes). Vérifiez les voyants du routeur. Contactez votre FAI si le problème persiste. Utilisez un câble Ethernet.",
-      "confidence": 0.88
-    },
-    {
-      "id": "R15",
-      "category": "Réseau",
-      "conditions": {"internet_lent": true, "wifi_connecte": true, "loin_du_routeur": true},
-      "conclusion": "Signal WiFi faible  débit insuffisant",
-      "solution": "Rapprochez-vous du routeur. Utilisez un répéteur WiFi ou un câble Ethernet. Changez le canal WiFi dans les paramètres du routeur.",
-      "confidence": 0.85
-    },
-    {
-      "id": "R16",
-      "category": "OS / Logiciel",
-      "conditions": {"ecran_bleu_bsod": true, "redemarrages_aleatoires": false, "pilote_recent_installe": true},
-      "conclusion": "Pilote de périphérique incompatible ou corrompu",
-      "solution": "Désinstallez le dernier pilote installé. Revenez à la version précédente via le Gestionnaire de périphériques. Téléchargez le pilote officiel depuis le site du fabricant.",
-      "confidence": 0.90
-    },
-    {
-      "id": "R17",
-      "category": "OS / Logiciel",
+      "id": "R29", "category": "Système", "severity": "high",
       "conditions": {"pc_gele": true, "application_specifique": true},
-      "conclusion": "Application instable ou incompatible avec le système",
-      "solution": "Forcez la fermeture de l'application (Ctrl+Alt+Suppr). Désinstallez et réinstallez l'application. Vérifiez les mises à jour de l'application.",
-      "confidence": 0.85
+      "conclusion": "Application instable ou incompatible — ce programme seul cause les blocages",
+      "solution": "1. Forcez la fermeture : Ctrl+Alt+Suppr > Fin de tâche. 2. Désinstallez et réinstallez l'application. 3. Vérifiez les mises à jour disponibles pour cette application. 4. Consultez le site de l'éditeur pour des problèmes connus.",
+      "confidence": 0.87
     },
     {
-      "id": "R18",
-      "category": "OS / Logiciel",
-      "conditions": {"pc_gele": true, "application_specifique": false, "demarrage_lent": true},
-      "conclusion": "Système d'exploitation corrompu ou infecté par un malware",
-      "solution": "Lancez un scan antivirus complet. Utilisez SFC /scannow (Windows) pour réparer les fichiers système. Envisagez une réinstallation du système.",
+      "id": "R30", "category": "Système", "severity": "high",
+      "conditions": {"pc_gele": true, "application_specifique": false, "virus_detecte": false},
+      "conclusion": "Blocage système général — corruption de fichiers système ou conflit matériel",
+      "solution": "1. Ouvrez une invite de commandes en administrateur. 2. Tapez : sfc /scannow (répare les fichiers système). 3. Ensuite : DISM /Online /Cleanup-Image /RestoreHealth. 4. Si le problème persiste → consultez l'Observateur d'événements pour identifier la cause.",
       "confidence": 0.82
     },
     {
-      "id": "R19",
-      "category": "OS / Logiciel",
+      "id": "R31", "category": "Démarrage", "severity": "critical",
       "conditions": {"erreurs_demarrage": true, "windows_ne_demarre_pas": true},
-      "conclusion": "Fichiers de démarrage Windows corrompus (bootloader)",
-      "solution": "Démarrez depuis un support USB Windows. Utilisez 'Réparer le démarrage' dans les options avancées. Ou lancez 'bootrec /fixmbr' et 'bootrec /fixboot' en ligne de commande.",
-      "confidence": 0.88
-    },
-    {
-      "id": "R20",
-      "category": "OS / Logiciel",
-      "conditions": {"mises_a_jour_echouent": true, "espace_disque_suffisant": true},
-      "conclusion": "Service Windows Update défaillant ou base de données corrompue",
-      "solution": "Réinitialisez Windows Update via l'outil de résolution des problèmes. Videz le cache Windows Update dans C:\\Windows\\SoftwareDistribution.",
-      "confidence": 0.80
-    },
-    {
-      "id": "R21",
-      "category": "Ventilation",
-      "conditions": {"bruit_ventilateur_fort": true, "surchauffe": true},
-      "conclusion": "Ventilateur encrassé ou pâte thermique sèche",
-      "solution": "Ouvrez le boîtier et nettoyez les ventilateurs avec de l'air comprimé. Remplacez la pâte thermique sur le processeur. Vérifiez que tous les ventilateurs tournent.",
+      "conclusion": "Fichiers de démarrage Windows corrompus — Windows ne peut plus démarrer",
+      "solution": "1. Créez une clé USB de réparation Windows (sur un autre PC). 2. Démarrez dessus. 3. Choisissez 'Réparer le démarrage'. 4. Si cela échoue → dans l'invite de commandes : bootrec /fixmbr puis bootrec /rebuildbcd.",
       "confidence": 0.90
     },
     {
-      "id": "R22",
-      "category": "Ventilation",
-      "conditions": {"bruit_ventilateur_fort": true, "surchauffe": false},
-      "conclusion": "Ventilateur défaillant (roulement usé) ou corps étranger",
-      "solution": "Localisez le ventilateur bruyant. Vérifiez la présence d'un corps étranger. Si le roulement est usé, remplacez le ventilateur.",
-      "confidence": 0.85
+      "id": "R32", "category": "Démarrage", "severity": "critical",
+      "conditions": {"message_boot_device_not_found": true},
+      "conclusion": "Le disque de démarrage n'est pas détecté — connexion physique ou ordre de démarrage incorrect",
+      "solution": "1. Redémarrez et entrez dans le BIOS (touche Del, F2 ou F12 selon votre PC). 2. Vérifiez que le disque apparaît dans la liste. 3. Vérifiez l'ordre de démarrage (Boot Order). 4. Si le disque est absent → vérifiez les câbles internes ou consultez un technicien.",
+      "confidence": 0.94
     },
     {
-      "id": "R23",
-      "category": "Périphériques",
+      "id": "R33", "category": "Démarrage", "severity": "high",
+      "conditions": {"pc_redémarre_en_boucle": true, "apres_mise_a_jour": true},
+      "conclusion": "Mise à jour Windows défectueuse — boucle de redémarrage causée par la mise à jour",
+      "solution": "1. Interrompez le démarrage 3 fois pour accéder à la réparation automatique. 2. Choisissez 'Options avancées' > 'Désinstaller les mises à jour'. 3. Ou utilisez 'Restauration du système' pour revenir avant la mise à jour.",
+      "confidence": 0.90
+    },
+    {
+      "id": "R34", "category": "Système", "severity": "medium",
+      "conditions": {"mises_a_jour_echouent": true, "espace_disque_suffisant": true},
+      "conclusion": "Service Windows Update corrompu — les mises à jour échouent malgré l'espace disponible",
+      "solution": "1. Allez dans Paramètres > Mise à jour > Résolution des problèmes. 2. Si cela ne suffit pas → ouvrez une invite de commandes en admin et tapez : net stop wuauserv, puis renommez C:\\Windows\\SoftwareDistribution en SoftwareDistribution.old, puis net start wuauserv.",
+      "confidence": 0.82
+    },
+    {
+      "id": "R35", "category": "Ventilation", "severity": "high",
+      "conditions": {"bruit_ventilateur_fort": true, "surchauffe": true},
+      "conclusion": "Refroidissement insuffisant — ventilateur encrassé ou pâte thermique à refaire",
+      "solution": "1. Nettoyez les ventilateurs et radiateurs avec de l'air comprimé. 2. Vérifiez que tous les ventilateurs tournent librement. 3. La pâte thermique sur le processeur doit être remplacée tous les 3-5 ans. Faites-le faire par un technicien si besoin.",
+      "confidence": 0.91
+    },
+    {
+      "id": "R36", "category": "Ventilation", "severity": "medium",
+      "conditions": {"bruit_ventilateur_fort": true, "surchauffe": false},
+      "conclusion": "Ventilateur abîmé — roulement usé ou corps étranger, bruit sans surchauffe",
+      "solution": "1. Identifiez le ventilateur bruyant (CPU, GPU, boîtier ou alimentation). 2. Vérifiez qu'aucun câble ne touche les pales. 3. Un ventilateur bruyant indique qu'il doit être remplacé prochainement.",
+      "confidence": 0.86
+    },
+    {
+      "id": "R37", "category": "Périphériques", "severity": "medium",
       "conditions": {"clavier_ne_fonctionne_pas": true, "connexion_usb": true},
       "conclusion": "Problème de connexion USB ou pilote clavier défaillant",
-      "solution": "Débranchez et rebranchez le clavier sur un autre port USB. Testez sur un autre PC. Mettez à jour les pilotes USB dans le Gestionnaire de périphériques.",
+      "solution": "1. Débranchez et rebranchez le clavier sur un autre port USB. 2. Testez le clavier sur un autre PC. 3. Dans le Gestionnaire de périphériques, désinstallez le clavier et rebranchez-le pour forcer la réinstallation du pilote.",
       "confidence": 0.85
     },
     {
-      "id": "R24",
-      "category": "Périphériques",
+      "id": "R38", "category": "Périphériques", "severity": "medium",
       "conditions": {"souris_ne_fonctionne_pas": true, "connexion_usb": true},
-      "conclusion": "Problème de connexion USB ou pilote souris défaillant",
-      "solution": "Débranchez et rebranchez la souris. Testez sur un autre port USB. Nettoyez le capteur optique de la souris. Mettez à jour les pilotes.",
+      "conclusion": "Problème de connexion USB ou capteur optique de la souris défaillant",
+      "solution": "1. Testez la souris sur une surface différente (pas de verre ni surface trop brillante). 2. Nettoyez le capteur optique sous la souris. 3. Testez sur un autre port USB. 4. Testez la souris sur un autre PC.",
       "confidence": 0.85
     },
     {
-      "id": "R25",
-      "category": "Périphériques",
-      "conditions": {"imprimante_ne_fonctionne_pas": true, "visible_dans_windows": false},
-      "conclusion": "Imprimante non reconnue par Windows",
-      "solution": "Redémarrez le spouleur d'impression (services.msc). Désinstallez et réinstallez les pilotes d'imprimante. Vérifiez la connexion USB ou réseau.",
+      "id": "R39", "category": "Périphériques", "severity": "medium",
+      "conditions": {"usb_non_detecte": true, "autre_usb_fonctionne": true},
+      "conclusion": "Le périphérique USB est défectueux ou nécessite un pilote spécifique",
+      "solution": "1. Testez ce périphérique sur un autre PC. 2. Vérifiez si un pilote est nécessaire (vérifiez le site du fabricant). 3. Si le périphérique ne fonctionne sur aucun PC → il est probablement défectueux.",
+      "confidence": 0.86
+    },
+    {
+      "id": "R40", "category": "Périphériques", "severity": "high",
+      "conditions": {"usb_non_detecte": true, "autre_usb_fonctionne": false},
+      "conclusion": "Contrôleur USB du PC défaillant — aucun appareil USB ne fonctionne sur ce port",
+      "solution": "1. Dans le Gestionnaire de périphériques, désinstallez les 'Contrôleurs de bus USB' et redémarrez. 2. Mettez à jour les pilotes chipset de votre carte mère. 3. Essayez un port USB différent (avant/arrière du PC).",
       "confidence": 0.83
     },
     {
-      "id": "R26",
-      "category": "Son",
-      "conditions": {"pas_de_son": true, "pilotes_audio_ok": true, "volume_non_mute": true},
-      "conclusion": "Carte son défaillante ou sortie audio incorrecte sélectionnée",
-      "solution": "Vérifiez le périphérique de lecture par défaut dans les paramètres son. Testez avec un casque sur différents ports. Mettez à jour les pilotes audio.",
-      "confidence": 0.82
+      "id": "R41", "category": "Périphériques", "severity": "medium",
+      "conditions": {"imprimante_ne_fonctionne_pas": true, "visible_dans_windows": false},
+      "conclusion": "Imprimante non reconnue par Windows — pilotes absents ou spouleur d'impression bloqué",
+      "solution": "1. Redémarrez le service spouleur : cherchez 'Services' dans le menu démarrer > Spouleur d'impression > Redémarrer. 2. Désinstallez et réinstallez les pilotes de l'imprimante depuis le site du fabricant. 3. Vérifiez le câble USB ou la connexion réseau.",
+      "confidence": 0.84
     },
     {
-      "id": "R27",
-      "category": "Son",
+      "id": "R42", "category": "Audio", "severity": "low",
       "conditions": {"pas_de_son": true, "volume_non_mute": false},
-      "conclusion": "Son coupé (mute) activé",
-      "solution": "Vérifiez que le son n'est pas coupé dans la barre des tâches. Appuyez sur la touche de son du clavier. Vérifiez le volume dans les paramètres système.",
+      "conclusion": "Son désactivé (muet) — cause la plus simple et la plus fréquente",
+      "solution": "1. Cliquez sur l'icône son en bas à droite de l'écran et remontez le volume. 2. Vérifiez aussi le volume dans l'application utilisée. 3. Appuyez sur la touche de son sur votre clavier (icône haut-parleur).",
       "confidence": 0.99
     },
     {
-      "id": "R28",
-      "category": "Batterie",
+      "id": "R43", "category": "Audio", "severity": "medium",
+      "conditions": {"pas_de_son": true, "volume_non_mute": true, "pilotes_audio_ok": false},
+      "conclusion": "Pilotes audio absents ou corrompus — la carte son n'est pas reconnue par Windows",
+      "solution": "1. Dans le Gestionnaire de périphériques, désinstallez la carte son. 2. Redémarrez pour forcer la réinstallation. 3. Si toujours absent → téléchargez les pilotes depuis le site du fabricant de votre carte mère.",
+      "confidence": 0.88
+    },
+    {
+      "id": "R44", "category": "Audio", "severity": "medium",
+      "conditions": {"pas_de_son": true, "volume_non_mute": true, "pilotes_audio_ok": true},
+      "conclusion": "Mauvais périphérique audio sélectionné — Windows envoie le son vers la mauvaise sortie",
+      "solution": "1. Clic droit sur l'icône son > Paramètres du son. 2. Dans 'Sortie', sélectionnez vos haut-parleurs ou casque. 3. Définissez-le comme périphérique par défaut. 4. Testez avec un casque branché directement.",
+      "confidence": 0.86
+    },
+    {
+      "id": "R45", "category": "Batterie", "severity": "high",
       "conditions": {"batterie_ne_charge_pas": true, "chargeur_fonctionnel": true},
-      "conclusion": "Batterie défaillante ou port de charge endommagé",
-      "solution": "Testez avec un autre chargeur compatible. Nettoyez le port de charge. Si la batterie a plus de 3 ans, envisagez son remplacement.",
-      "confidence": 0.87
+      "conclusion": "Batterie défaillante ou connecteur de charge endommagé",
+      "solution": "1. Vérifiez l'état de la batterie : ouvrez une invite de commandes et tapez powercfg /batteryreport. 2. Ouvrez le rapport généré et regardez 'FULL CHARGE CAPACITY' vs 'DESIGN CAPACITY'. 3. Si l'écart dépasse 40 % → batterie à remplacer.",
+      "confidence": 0.89
     },
     {
-      "id": "R29",
-      "category": "Batterie",
+      "id": "R46", "category": "Batterie", "severity": "medium",
       "conditions": {"batterie_se_decharge_vite": true, "age_batterie_superieur_3ans": true},
-      "conclusion": "Batterie usée  capacité réduite avec le temps",
-      "solution": "Vérifiez l'état de la batterie (powercfg /batteryreport sur Windows). Calibrez la batterie (décharge complète puis recharge). Remplacez la batterie.",
-      "confidence": 0.90
+      "conclusion": "Batterie usée par le temps — capacité naturellement réduite après 3 ans ou 500 cycles",
+      "solution": "1. Vérifiez le rapport batterie (powercfg /batteryreport). 2. Si la capacité réelle est bien inférieure à la capacité d'origine → remplacement recommandé. 3. En attendant, réduisez la luminosité et désactivez le WiFi/Bluetooth quand inutilisés.",
+      "confidence": 0.91
     },
     {
-      "id": "R30",
-      "category": "Démarrage",
-      "conditions": {"pc_redémarre_en_boucle": true, "apres_mise_a_jour": true},
-      "conclusion": "Mise à jour Windows problématique causant une boucle de redémarrage",
-      "solution": "Démarrez en mode sans échec. Désinstallez la dernière mise à jour via Paramètres > Windows Update > Historique. Ou utilisez la restauration du système.",
-      "confidence": 0.88
-    },
-    {
-      "id": "R31",
-      "category": "Démarrage",
-      "conditions": {"bips_au_demarrage": true, "un_bip_long": true},
-      "conclusion": "Problème de mémoire RAM détecté par le BIOS",
-      "solution": "Réinsérez les barrettes RAM. Nettoyez les contacts avec une gomme. Testez chaque barrette individuellement. Consultez le manuel de la carte mère pour le code de bip.",
-      "confidence": 0.92
-    },
-    {
-      "id": "R32",
-      "category": "Démarrage",
-      "conditions": {"bips_au_demarrage": true, "plusieurs_bips_courts": true},
-      "conclusion": "Problème matériel détecté par le BIOS (GPU ou carte mère)",
-      "solution": "Réinsérez la carte graphique. Vérifiez tous les connecteurs internes. Consultez le manuel de la carte mère pour interpréter le code de bips spécifique.",
-      "confidence": 0.85
-    },
-    {
-      "id": "R33",
-      "category": "Performance",
-      "conditions": {"pc_lent": true, "beaucoup_applications_ouvertes": true},
-      "conclusion": "Surcharge du processeur ou de la RAM par trop d'applications",
-      "solution": "Fermez les applications inutiles. Désactivez les programmes au démarrage (msconfig ou Gestionnaire des tâches > Démarrage). Redémarrez le PC régulièrement.",
-      "confidence": 0.88
-    },
-    {
-      "id": "R34",
-      "category": "Performance",
-      "conditions": {"pc_lent": true, "beaucoup_applications_ouvertes": false, "virus_detecte": true},
-      "conclusion": "Infection par malware ou virus ralentissant le système",
-      "solution": "Lancez un scan complet avec Windows Defender ou Malwarebytes. Supprimez les programmes suspects. Mettez à jour le système et l'antivirus.",
-      "confidence": 0.90
-    },
-    {
-      "id": "R35",
-      "category": "Réseau",
-      "conditions": {"internet_lent": true, "wifi_connecte": true, "loin_du_routeur": false, "beaucoup_appareils_connectes": true},
-      "conclusion": "Bande passante partagée entre trop d'appareils",
-      "solution": "Déconnectez les appareils inutilisés. Utilisez le câble Ethernet pour une connexion plus stable. Envisagez une mise à niveau de votre abonnement internet.",
-      "confidence": 0.80
-    },
-    {
-      "id": "R36",
-      "category": "Ecran",
-      "conditions": {"ecran_scintille": true, "pilote_recent_installe": true},
-      "conclusion": "Conflit de pilote graphique causant le scintillement",
-      "solution": "Revenez à la version précédente du pilote graphique. Ou désinstallez complètement avec DDU (Display Driver Uninstaller) et réinstallez.",
-      "confidence": 0.88
-    },
-    {
-      "id": "R37",
-      "category": "Ecran",
-      "conditions": {"ecran_scintille": true, "pilote_recent_installe": false},
-      "conclusion": "Câble d'affichage défectueux ou taux de rafraîchissement incorrect",
-      "solution": "Vérifiez et remplacez le câble vidéo. Vérifiez les paramètres d'affichage (taux de rafraîchissement doit correspondre aux capacités du moniteur).",
-      "confidence": 0.83
-    },
-    {
-      "id": "R38",
-      "category": "OS / Logiciel",
-      "conditions": {"applications_ne_s_ouvrent_pas": true, "message_erreur_dll": true},
-      "conclusion": "Fichiers DLL manquants ou corrompus",
-      "solution": "Lancez 'sfc /scannow' en administrateur. Installez ou réinstallez le package Visual C++ Redistributable. Réinstallez l'application concernée.",
-      "confidence": 0.87
-    },
-    {
-      "id": "R39",
-      "category": "Périphériques",
-      "conditions": {"usb_non_detecte": true, "autre_usb_fonctionne": true},
-      "conclusion": "Périphérique USB défaillant ou incompatible",
-      "solution": "Testez le périphérique sur un autre PC. Vérifiez si des pilotes spécifiques sont nécessaires. Le périphérique est probablement défectueux.",
-      "confidence": 0.85
-    },
-    {
-      "id": "R40",
-      "category": "Périphériques",
-      "conditions": {"usb_non_detecte": true, "autre_usb_fonctionne": false},
-      "conclusion": "Contrôleur USB défaillant ou pilotes USB corrompus",
-      "solution": "Désinstallez et réinstallez les contrôleurs USB dans le Gestionnaire de périphériques. Mettez à jour les pilotes chipset de la carte mère.",
-      "confidence": 0.82
-    },
-    {
-      "id": "R41",
-      "category": "Réseau",
-      "conditions": {"connexion_coupe_regulierement": true, "wifi_connecte": true},
-      "conclusion": "Interférences WiFi ou problème de gestion d'énergie de la carte réseau",
-      "solution": "Désactivez l'économie d'énergie de la carte réseau dans le Gestionnaire de périphériques. Changez le canal WiFi du routeur. Éloignez les sources d'interférences (micro-ondes, etc.).",
-      "confidence": 0.83
-    },
-    {
-      "id": "R42",
-      "category": "Démarrage",
-      "conditions": {"message_boot_device_not_found": true},
-      "conclusion": "Disque dur non détecté par le BIOS ou ordre de démarrage incorrect",
-      "solution": "Vérifiez les connexions SATA/alimentation du disque. Dans le BIOS, vérifiez que le disque est détecté et qu'il est en premier dans l'ordre de démarrage.",
-      "confidence": 0.93
-    },
-    {
-      "id": "R43",
-      "category": "Performance",
-      "conditions": {"jeux_lents": true, "fps_bas": true, "parametres_graphiques_eleves": true},
-      "conclusion": "Paramètres graphiques trop élevés pour la configuration matérielle",
-      "solution": "Réduisez la qualité graphique dans les options du jeu. Baissez la résolution. Mettez à jour les pilotes graphiques. Vérifiez la température de la GPU.",
-      "confidence": 0.88
-    },
-    {
-      "id": "R44",
-      "category": "OS / Logiciel",
+      "id": "R47", "category": "Système", "severity": "high",
       "conditions": {"bureau_ne_s_affiche_pas": true, "processus_explorer_manquant": true},
-      "conclusion": "Processus Windows Explorer (explorer.exe) planté",
-      "solution": "Ouvrez le Gestionnaire des tâches (Ctrl+Shift+Esc). Cliquez sur Fichier > Exécuter une nouvelle tâche > tapez 'explorer.exe'. Ou redémarrez le PC.",
-      "confidence": 0.95
+      "conclusion": "Gestionnaire de fichiers Windows (explorer.exe) planté — le bureau ne s'affiche pas",
+      "solution": "1. Appuyez sur Ctrl+Shift+Échap pour ouvrir le Gestionnaire des tâches. 2. Cliquez sur 'Fichier' > 'Exécuter une nouvelle tâche'. 3. Tapez : explorer.exe et validez. 4. Si le problème revient au prochain démarrage → scan antivirus recommandé.",
+      "confidence": 0.96
     },
     {
-      "id": "R45",
-      "category": "Alimentation",
-      "conditions": {"pc_s_eteint_seul": true, "surchauffe": false, "probleme_alim": true},
-      "conclusion": "Bloc d'alimentation instable ou sous-dimensionné",
-      "solution": "Vérifiez que le bloc d'alimentation fournit assez de watts pour votre configuration. Testez avec un autre bloc d'alimentation. Vérifiez les condensateurs du bloc.",
-      "confidence": 0.87
+      "id": "R48", "category": "Système", "severity": "medium",
+      "conditions": {"applications_ne_s_ouvrent_pas": true, "message_erreur_dll": true},
+      "conclusion": "Fichier système DLL manquant ou corrompu — des bibliothèques essentielles sont absentes",
+      "solution": "1. Ouvrez une invite de commandes en administrateur. 2. Tapez : sfc /scannow (patientez, cela prend 10-20 min). 3. Installez aussi les 'Visual C++ Redistributable' (tous versions) depuis le site de Microsoft. 4. Réinstallez l'application problématique.",
+      "confidence": 0.88
+    },
+    {
+      "id": "R49", "category": "Performance", "severity": "medium",
+      "conditions": {"jeux_lents": true, "fps_bas": true, "parametres_graphiques_eleves": true},
+      "conclusion": "Paramètres graphiques trop élevés pour votre PC — la carte graphique est surchargée",
+      "solution": "1. Dans les paramètres du jeu, réduisez la qualité graphique (passez en 'Moyen' ou 'Faible'). 2. Baissez la résolution. 3. Désactivez le Ray Tracing si disponible. 4. Mettez à jour les pilotes de votre carte graphique.",
+      "confidence": 0.90
     }
-  ],
-  "symptom_questions": [
-    {"id": "pc_ne_demarre_pas", "question": "Le PC ne démarre pas du tout (aucun signe de vie) ?", "type": "boolean"},
-    {"id": "pas_de_lumiere_led", "question": "Aucune LED n'est allumée sur le boîtier ou la carte mère ?", "type": "boolean"},
-    {"id": "ventilateur_tourne", "question": "Les ventilateurs tournent-ils quand vous appuyez sur le bouton marche ?", "type": "boolean"},
-    {"id": "pc_s_eteint_seul", "question": "Le PC s'éteint tout seul de manière inattendue ?", "type": "boolean"},
-    {"id": "surchauffe", "question": "Le PC est-il très chaud au toucher ou les ventilateurs sont-ils très bruyants ?", "type": "boolean"},
-    {"id": "ecran_noir", "question": "L'écran reste noir malgré que le PC semble fonctionner ?", "type": "boolean"},
-    {"id": "pc_fonctionne", "question": "Le PC semble fonctionner (voyants allumés, ventilateurs tournent) mais l'écran est noir ?", "type": "boolean"},
-    {"id": "voyant_ecran_allume", "question": "Le voyant LED du moniteur est-il allumé (pas en veille) ?", "type": "boolean"},
-    {"id": "ecran_pixelise", "question": "Des pixels aberrants, carrés colorés ou artifacts graphiques apparaissent à l'écran ?", "type": "boolean"},
-    {"id": "artefacts_visuels", "question": "Des artefacts visuels (lignes, formes étranges) sont-ils visibles ?", "type": "boolean"},
-    {"id": "ecran_scintille", "question": "L'écran scintille ou clignote ?", "type": "boolean"},
-    {"id": "ecran_bleu_bsod", "question": "Apparition d'un écran bleu (BSOD - Blue Screen of Death) ?", "type": "boolean"},
-    {"id": "redemarrages_aleatoires", "question": "Le PC redémarre aléatoirement sans avertissement ?", "type": "boolean"},
-    {"id": "pc_lent", "question": "Le PC est anormalement lent dans ses opérations ?", "type": "boolean"},
-    {"id": "beaucoup_applications_ouvertes", "question": "Beaucoup d'applications sont-elles ouvertes simultanément ?", "type": "boolean"},
-    {"id": "ram_pleine", "question": "Le gestionnaire des tâches indique-t-il une utilisation RAM > 90% ?", "type": "boolean"},
-    {"id": "demarrage_lent", "question": "Le démarrage de Windows/Linux prend-il beaucoup plus de temps que d'habitude ?", "type": "boolean"},
-    {"id": "bruits_cliquetis", "question": "Entendez-vous des bruits de cliquetis ou de grattage provenant du disque dur ?", "type": "boolean"},
-    {"id": "disque_presque_plein", "question": "Le disque dur est-il rempli à plus de 90% de sa capacité ?", "type": "boolean"},
-    {"id": "fichiers_inaccessibles", "question": "Des fichiers ou dossiers sont-ils devenus inaccessibles ?", "type": "boolean"},
-    {"id": "erreurs_lecture_ecriture", "question": "Des erreurs de lecture/écriture apparaissent-elles lors de l'accès à des fichiers ?", "type": "boolean"},
-    {"id": "pas_internet", "question": "Vous n'avez pas accès à Internet ?", "type": "boolean"},
-    {"id": "wifi_connecte", "question": "Êtes-vous connecté au réseau WiFi (icône WiFi pleine dans la barre des tâches) ?", "type": "boolean"},
-    {"id": "autres_appareils_fonctionnent", "question": "D'autres appareils (téléphone, tablette) ont-ils accès à Internet sur ce même réseau ?", "type": "boolean"},
-    {"id": "signal_wifi_visible", "question": "Le réseau WiFi est-il visible dans la liste des réseaux disponibles ?", "type": "boolean"},
-    {"id": "internet_lent", "question": "La connexion Internet est-elle très lente ?", "type": "boolean"},
-    {"id": "loin_du_routeur", "question": "Êtes-vous loin du routeur WiFi (plus de 10 mètres ou murs entre les deux) ?", "type": "boolean"},
-    {"id": "beaucoup_appareils_connectes", "question": "Beaucoup d'appareils sont-ils connectés à votre réseau WiFi en même temps ?", "type": "boolean"},
-    {"id": "connexion_coupe_regulierement", "question": "La connexion WiFi se coupe-t-elle régulièrement et se reconnecte automatiquement ?", "type": "boolean"},
-    {"id": "pilote_recent_installe", "question": "Avez-vous installé un nouveau pilote ou une mise à jour récemment ?", "type": "boolean"},
-    {"id": "pc_gele", "question": "Le PC se fige complètement (aucune réponse clavier/souris) ?", "type": "boolean"},
-    {"id": "application_specifique", "question": "Le problème survient-il uniquement avec une application spécifique ?", "type": "boolean"},
-    {"id": "erreurs_demarrage", "question": "Des messages d'erreur apparaissent-ils au démarrage du PC ?", "type": "boolean"},
-    {"id": "windows_ne_demarre_pas", "question": "Windows refuse de démarrer complètement ?", "type": "boolean"},
-    {"id": "mises_a_jour_echouent", "question": "Les mises à jour Windows échouent-elles systématiquement ?", "type": "boolean"},
-    {"id": "espace_disque_suffisant", "question": "Avez-vous plus de 10 Go d'espace libre sur le disque système ?", "type": "boolean"},
-    {"id": "bruit_ventilateur_fort", "question": "Les ventilateurs font-ils un bruit anormalement fort ?", "type": "boolean"},
-    {"id": "clavier_ne_fonctionne_pas", "question": "Le clavier ne fonctionne pas ou certaines touches ne répondent pas ?", "type": "boolean"},
-    {"id": "connexion_usb", "question": "Le périphérique est-il connecté en USB ?", "type": "boolean"},
-    {"id": "souris_ne_fonctionne_pas", "question": "La souris ne fonctionne pas ou est erratique ?", "type": "boolean"},
-    {"id": "imprimante_ne_fonctionne_pas", "question": "L'imprimante ne répond pas aux commandes d'impression ?", "type": "boolean"},
-    {"id": "visible_dans_windows", "question": "L'imprimante apparaît-elle dans 'Périphériques et imprimantes' de Windows ?", "type": "boolean"},
-    {"id": "pas_de_son", "question": "Pas de son du tout malgré le volume non coupé ?", "type": "boolean"},
-    {"id": "pilotes_audio_ok", "question": "Les pilotes audio apparaissent-ils normalement dans le Gestionnaire de périphériques ?", "type": "boolean"},
-    {"id": "volume_non_mute", "question": "Le volume est-il activé (non muet) dans les paramètres système ?", "type": "boolean"},
-    {"id": "batterie_ne_charge_pas", "question": "La batterie ne se charge pas quand le chargeur est branché ?", "type": "boolean"},
-    {"id": "chargeur_fonctionnel", "question": "Le chargeur fonctionne-t-il avec un autre appareil compatible ?", "type": "boolean"},
-    {"id": "batterie_se_decharge_vite", "question": "La batterie se décharge très rapidement (moins de 2 heures) ?", "type": "boolean"},
-    {"id": "age_batterie_superieur_3ans", "question": "La batterie a-t-elle plus de 3 ans ?", "type": "boolean"},
-    {"id": "pc_redémarre_en_boucle", "question": "Le PC redémarre en boucle sans jamais atteindre le bureau ?", "type": "boolean"},
-    {"id": "apres_mise_a_jour", "question": "Ce problème a-t-il commencé après une mise à jour Windows ?", "type": "boolean"},
-    {"id": "bips_au_demarrage", "question": "Entendez-vous des bips sonores au démarrage du PC ?", "type": "boolean"},
-    {"id": "un_bip_long", "question": "Est-ce un long bip ou un bip répété plusieurs fois ?", "type": "boolean"},
-    {"id": "plusieurs_bips_courts", "question": "Y a-t-il plusieurs bips courts successifs ?", "type": "boolean"},
-    {"id": "message_boot_device_not_found", "question": "Un message 'Boot device not found' ou 'No bootable device' apparaît-il ?", "type": "boolean"},
-    {"id": "virus_detecte", "question": "Votre antivirus a-t-il détecté une menace récemment ?", "type": "boolean"},
-    {"id": "jeux_lents", "question": "Les jeux vidéo ou applications 3D sont-ils particulièrement lents ?", "type": "boolean"},
-    {"id": "fps_bas", "question": "Le nombre d'images par seconde (FPS) est-il anormalement bas ?", "type": "boolean"},
-    {"id": "parametres_graphiques_eleves", "question": "Les paramètres graphiques du jeu sont-ils réglés au maximum ?", "type": "boolean"},
-    {"id": "bureau_ne_s_affiche_pas", "question": "Le bureau Windows ne s'affiche pas après la connexion ?", "type": "boolean"},
-    {"id": "processus_explorer_manquant", "question": "Dans le gestionnaire des tâches, 'explorer.exe' est-il absent des processus ?", "type": "boolean"},
-    {"id": "probleme_alim", "question": "Le bloc d'alimentation semble-t-il insuffisant pour votre configuration ?", "type": "boolean"},
-    {"id": "usb_non_detecte", "question": "Un périphérique USB n'est pas détecté par Windows ?", "type": "boolean"},
-    {"id": "autre_usb_fonctionne", "question": "D'autres périphériques USB fonctionnent-ils correctement sur ce même port ?", "type": "boolean"},
-    {"id": "applications_ne_s_ouvrent_pas", "question": "Des applications refusent de s'ouvrir avec une erreur ?", "type": "boolean"},
-    {"id": "message_erreur_dll", "question": "Un message d'erreur mentionnant un fichier '.dll manquant' apparaît-il ?", "type": "boolean"}
-  ],
-  "categories": [
-    {"id": "alimentation", "label": "Alimentation & Démarrage", "icon": "⚡"},
-    {"id": "ecran", "label": "Écran & Affichage", "icon": "🖥️"},
-    {"id": "reseau", "label": "Réseau & Internet", "icon": "🌐"},
-    {"id": "performance", "label": "Performances", "icon": "⚡"},
-    {"id": "disque", "label": "Disque dur & Stockage", "icon": "💾"},
-    {"id": "ram", "label": "Mémoire RAM", "icon": "🔧"},
-    {"id": "os", "label": "Système d'exploitation", "icon": "🖥️"},
-    {"id": "peripheriques", "label": "Périphériques", "icon": "🖱️"},
-    {"id": "son", "label": "Son & Audio", "icon": "🔊"},
-    {"id": "batterie", "label": "Batterie (laptop)", "icon": "🔋"},
-    {"id": "ventilation", "label": "Ventilation & Refroidissement", "icon": "🌀"},
-    {"id": "demarrage", "label": "Démarrage & BIOS", "icon": "🔌"}
   ]
 }

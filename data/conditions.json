@@ -1,0 +1,50 @@
+{
+  "settings": {
+    "min_answers": 5,
+    "max_diagnoses": 5,
+    "max_questions": 0,
+    "unknown_penalty": 0.10
+  },
+  "inconsistency_rules": [
+    {
+      "id": "INC001",
+      "if": {"pc_ne_demarre_pas": true, "pc_fonctionne": true},
+      "message": "⚠️ Incohérence : vous avez indiqué que le PC ne démarre pas, mais qu'il semble fonctionner."
+    },
+    {
+      "id": "INC002",
+      "if": {"ecran_noir": true, "artefacts_visuels": true},
+      "message": "⚠️ Incohérence : un écran totalement noir et des artefacts visibles ne peuvent pas coexister."
+    },
+    {
+      "id": "INC003",
+      "if": {"pas_internet": true, "internet_lent": true},
+      "message": "⚠️ Incohérence : 'pas d'Internet du tout' et 'Internet lent' décrivent deux états différents."
+    },
+    {
+      "id": "INC004",
+      "if": {"pc_ne_demarre_pas": true, "pas_internet": true},
+      "message": "⚠️ Incohérence : un PC qui ne démarre pas ne peut pas avoir un problème Internet en même temps."
+    },
+    {
+      "id": "INC005",
+      "if": {"pc_ne_demarre_pas": true, "pc_lent": true},
+      "message": "⚠️ Incohérence : si le PC ne démarre pas du tout, la lenteur n'est pas le problème principal."
+    },
+    {
+      "id": "INC006",
+      "if": {"pc_ne_demarre_pas": true, "ecran_bleu_bsod": true},
+      "message": "⚠️ Incohérence : un écran bleu (BSOD) suppose que le système a démarré partiellement."
+    },
+    {
+      "id": "INC007",
+      "if": {"bruits_cliquetis": true, "ssd_utilise": true},
+      "message": "ℹ️ Note : les SSD ne font pas de bruit mécanique — vérifiez que le bruit vient bien du disque."
+    },
+    {
+      "id": "INC008",
+      "if": {"surchauffe": true, "bruit_ventilateur_fort": false},
+      "message": "⚠️ Incohérence : surchauffe signalée mais ventilateurs silencieux — un ventilateur défaillant est probable."
+    }
+  ]
+}

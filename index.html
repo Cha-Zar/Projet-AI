@@ -1,46 +1,893 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SysDiag — Système Expert</title>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Space+Grotesk:wght@300;400;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/style.css">
-  <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SysDiag — Diagnostic Informatique</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Epilogue:wght@300;400;700;900&family=Bebas+Neue&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
+<style>
+/* ═══════════════════════════════════════════════════════════
+   TOKENS
+═══════════════════════════════════════════════════════════ */
+:root {
+  --bg:        #060810;
+  --surface:   #0d0f1a;
+  --surface2:  #131626;
+  --surface3:  #1a1e30;
+  --border:    #1e2340;
+  --border2:   #272d4a;
+  --cyan:      #00e5ff;
+  --cyan-glow: rgba(0,229,255,0.15);
+  --purple:    #7c5cfc;
+  --purple-dim:#4a3a99;
+  --amber:     #f59e0b;
+  --green:     #10d98f;
+  --red:       #ff4560;
+  --orange:    #ff7d3b;
+  --text:      #dde3f5;
+  --text-dim:  #8893b5;
+  --text-muted:#424e72;
+  --mono:      'JetBrains Mono', monospace;
+  --body:      'Epilogue', sans-serif;
+  --display:   'Bebas Neue', cursive;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RESET & BASE
+═══════════════════════════════════════════════════════════ */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--body);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Scanlines */
+body::after {
+  content:'';
+  position:fixed; inset:0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,.05) 3px, rgba(0,0,0,.05) 4px);
+  pointer-events:none; z-index:9000;
+}
+
+/* Grid */
+.grid-bg {
+  position:fixed; inset:0;
+  background-image:
+    linear-gradient(rgba(0,229,255,.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,255,.02) 1px, transparent 1px);
+  background-size: 36px 36px;
+  pointer-events:none; z-index:0;
+}
+
+/* Glows */
+.glow { position:fixed; pointer-events:none; z-index:0; border-radius:50%; }
+.glow-1 { top:-300px; left:-200px; width:700px; height:700px; background:radial-gradient(circle, rgba(124,92,252,.07) 0%, transparent 70%); }
+.glow-2 { bottom:-300px; right:-200px; width:700px; height:700px; background:radial-gradient(circle, rgba(0,229,255,.05) 0%, transparent 70%); }
+
+/* ═══════════════════════════════════════════════════════════
+   LAYOUT
+═══════════════════════════════════════════════════════════ */
+.app { position:relative; z-index:1; max-width:980px; margin:0 auto; padding:0 24px 80px; }
+
+/* ═══════════════════════════════════════════════════════════
+   HEADER
+═══════════════════════════════════════════════════════════ */
+header {
+  padding: 48px 0 36px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 48px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+.logo-eyebrow { font-family:var(--mono); font-size:10px; color:var(--cyan); letter-spacing:4px; text-transform:uppercase; margin-bottom:6px; opacity:.65; }
+.logo-title {
+  font-family: var(--display);
+  font-size: clamp(56px,9vw,96px);
+  letter-spacing: 6px;
+  line-height: .9;
+  background: linear-gradient(135deg, #fff 0%, var(--cyan) 55%, var(--purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.logo-sub { font-family:var(--mono); font-size:11px; color:var(--text-muted); margin-top:10px; letter-spacing:1px; }
+.logo-sub span { color:var(--cyan); opacity:.5; }
+
+.hd-meta { display:flex; flex-direction:column; align-items:flex-end; gap:8px; }
+
+/* Chips */
+.chip {
+  display:inline-flex; align-items:center; gap:6px;
+  font-family:var(--mono); font-size:10px;
+  padding: 5px 12px; border-radius:3px;
+  letter-spacing:1px; text-transform:uppercase;
+}
+.chip-cyan   { background:rgba(0,229,255,.07); color:var(--cyan); border:1px solid rgba(0,229,255,.2); }
+.chip-purple { background:rgba(124,92,252,.1); color:#a78bfa; border:1px solid rgba(124,92,252,.25); }
+.chip-py     { background:rgba(255,212,59,.07); color:#ffd43b; border:1px solid rgba(255,212,59,.2); }
+
+/* Blink dot */
+.dot { width:6px; height:6px; border-radius:50%; background:var(--green); animation:blink 1.5s ease-in-out infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
+
+/* ═══════════════════════════════════════════════════════════
+   ANIMATIONS
+═══════════════════════════════════════════════════════════ */
+@keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+.fade-up { animation: fadeUp .35s ease both; }
+
+/* ═══════════════════════════════════════════════════════════
+   LOADING
+═══════════════════════════════════════════════════════════ */
+.loading-box {
+  background:var(--surface); border:1px solid var(--border); border-radius:12px;
+  padding:48px 32px; text-align:center; animation:fadeUp .4s ease;
+}
+.loading-title { font-family:var(--display); font-size:44px; letter-spacing:4px; margin-bottom:16px; background:linear-gradient(135deg,#ffd43b,#f97316); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.loading-sub { font-family:var(--mono); font-size:11px; color:var(--text-muted); letter-spacing:1px; margin-bottom:24px; }
+.bar-track { height:3px; background:var(--border); border-radius:2px; overflow:hidden; max-width:320px; margin:0 auto 10px; }
+.bar-fill { height:100%; background:linear-gradient(90deg,#ffd43b,#f97316); border-radius:2px; width:0%; transition:width .6s ease; }
+.loading-log { font-family:var(--mono); font-size:10px; color:var(--text-muted); min-height:18px; }
+
+/* ═══════════════════════════════════════════════════════════
+   START
+═══════════════════════════════════════════════════════════ */
+.stats-strip {
+  display:flex; border:1px solid var(--border); border-radius:12px; overflow:hidden; margin-bottom:36px;
+}
+.stat-cell {
+  flex:1; padding:24px 16px; text-align:center;
+  border-right:1px solid var(--border); background:var(--surface);
+  transition:background .2s;
+}
+.stat-cell:last-child { border-right:none; }
+.stat-cell:hover { background:var(--surface2); }
+.stat-num { font-family:var(--display); font-size:46px; letter-spacing:2px; color:var(--cyan); line-height:1; }
+.stat-label { font-family:var(--mono); font-size:9px; color:var(--text-muted); text-transform:uppercase; letter-spacing:2px; margin-top:6px; }
+
+.intro-card {
+  background:var(--surface); border:1px solid var(--border); border-radius:12px;
+  padding:28px 32px; margin-bottom:32px; position:relative; overflow:hidden;
+}
+.intro-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,var(--purple),var(--cyan)); }
+.intro-label { font-family:var(--mono); font-size:9px; color:var(--cyan); letter-spacing:3px; text-transform:uppercase; margin-bottom:14px; opacity:.7; }
+.intro-text { font-size:15px; color:var(--text-dim); line-height:1.85; }
+.intro-text strong { color:var(--text); }
+
+.py-badge {
+  display:inline-flex; align-items:center; gap:8px; margin-top:16px;
+  background:rgba(255,212,59,.06); border:1px solid rgba(255,212,59,.2); border-radius:6px;
+  padding:9px 16px; font-family:var(--mono); font-size:11px; color:#ffd43b;
+}
+
+.btn-start {
+  display:block; width:100%; padding:20px;
+  background:linear-gradient(135deg,#00b8cc,var(--cyan));
+  color:#000; border:none; border-radius:8px;
+  font-family:var(--display); font-size:28px; letter-spacing:5px;
+  cursor:pointer; transition:all .2s; margin-bottom:14px;
+}
+.btn-start:hover { transform:translateY(-2px); box-shadow:0 8px 40px rgba(0,229,255,.3); }
+
+/* ═══════════════════════════════════════════════════════════
+   CATEGORY FILTER BAR
+═══════════════════════════════════════════════════════════ */
+.cat-bar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:32px; }
+.cat-chip {
+  display:inline-flex; align-items:center; gap:5px;
+  font-family:var(--mono); font-size:10px; padding:6px 14px; border-radius:20px;
+  cursor:pointer; transition:all .18s; letter-spacing:.5px;
+  background:var(--surface2); border:1px solid var(--border2); color:var(--text-muted);
+  user-select:none;
+}
+.cat-chip:hover { border-color:var(--cyan); color:var(--cyan); }
+.cat-chip.active { background:rgba(0,229,255,.1); border-color:var(--cyan); color:var(--cyan); }
+.cat-chip .cat-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+
+/* ═══════════════════════════════════════════════════════════
+   PROGRESS
+═══════════════════════════════════════════════════════════ */
+.prog-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px; }
+.prog-label { font-family:var(--mono); font-size:10px; color:var(--text-muted); letter-spacing:2px; text-transform:uppercase; }
+.prog-right { display:flex; align-items:center; gap:14px; }
+.prog-count { font-family:var(--mono); font-size:12px; color:var(--cyan); }
+.prog-live { font-family:var(--mono); font-size:10px; padding:2px 9px; background:rgba(16,217,143,.1); border:1px solid rgba(16,217,143,.2); border-radius:3px; color:var(--green); }
+.prog-track { height:3px; background:var(--border); border-radius:2px; overflow:hidden; margin-bottom:32px; }
+.prog-fill { height:100%; background:linear-gradient(90deg,var(--purple),var(--cyan)); border-radius:2px; transition:width .6s cubic-bezier(.4,0,.2,1); }
+
+/* ═══════════════════════════════════════════════════════════
+   QUESTION CARD
+═══════════════════════════════════════════════════════════ */
+.q-section { animation:fadeUp .3s ease; }
+
+.cat-trail { display:flex; align-items:center; gap:8px; margin-bottom:14px; font-family:var(--mono); font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; }
+.trail-dot { width:6px; height:6px; border-radius:50%; }
+
+.q-card {
+  background:var(--surface); border:1px solid var(--border); border-radius:12px;
+  padding:32px; margin-bottom:12px; position:relative; overflow:hidden;
+}
+.q-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,var(--purple),var(--cyan)); }
+.q-num { font-family:var(--mono); font-size:10px; color:var(--cyan); letter-spacing:3px; text-transform:uppercase; margin-bottom:12px; opacity:.6; }
+.q-text { font-size:21px; font-weight:700; line-height:1.4; color:var(--text); margin-bottom:28px; }
+
+/* Answer buttons */
+.answer-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+.ans-btn {
+  padding:16px 12px; border-radius:8px; border:1px solid var(--border2);
+  background:var(--surface2); cursor:pointer; transition:all .18s; text-align:center;
+}
+.ans-btn:hover { transform:translateY(-2px); }
+.ans-btn .icon { font-size:22px; margin-bottom:6px; display:block; }
+.ans-btn .lbl { font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; display:block; color:var(--text-muted); }
+.ans-btn.yes:hover  { border-color:var(--green); background:rgba(16,217,143,.1); }
+.ans-btn.yes:hover .lbl  { color:var(--green); }
+.ans-btn.no:hover   { border-color:var(--red); background:rgba(255,69,96,.1); }
+.ans-btn.no:hover .lbl   { color:var(--red); }
+.ans-btn.unk:hover  { border-color:var(--amber); background:rgba(245,158,11,.1); }
+.ans-btn.unk:hover .lbl  { color:var(--amber); }
+
+/* Nav */
+.nav-row { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:8px; }
+.btn-nav {
+  padding:12px 24px; border-radius:7px; border:1px solid var(--border2);
+  background:var(--surface2); color:var(--text-muted);
+  font-family:var(--mono); font-size:11px; cursor:pointer; transition:all .18s;
+  letter-spacing:1px; text-transform:uppercase;
+}
+.btn-nav:hover { color:var(--text-dim); border-color:var(--border2); }
+
+.btn-diag {
+  padding:12px 32px; border-radius:7px; border:1px solid var(--cyan);
+  background:rgba(0,229,255,.08); color:var(--cyan);
+  font-family:var(--mono); font-size:11px; font-weight:700; cursor:pointer; transition:all .2s;
+  letter-spacing:2px; text-transform:uppercase;
+}
+.btn-diag:hover { background:var(--cyan); color:#000; box-shadow:0 0 24px rgba(0,229,255,.3); }
+.btn-diag.locked { border-color:var(--border2); background:var(--surface2); color:var(--text-muted); cursor:not-allowed; }
+.btn-diag.locked:hover { background:var(--surface2); color:var(--text-muted); box-shadow:none; }
+
+.min-warn { background:rgba(245,158,11,.07); border:1px solid rgba(245,158,11,.2); border-radius:7px; padding:10px 16px; font-family:var(--mono); font-size:10px; color:var(--amber); margin-bottom:10px; }
+
+/* ═══════════════════════════════════════════════════════════
+   LIVE INFERENCE PANEL
+═══════════════════════════════════════════════════════════ */
+.live-panel { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:14px 18px; margin-bottom:12px; }
+.live-title { font-family:var(--mono); font-size:9px; color:var(--text-muted); letter-spacing:3px; text-transform:uppercase; margin-bottom:10px; display:flex; align-items:center; gap:8px; }
+.live-item { display:flex; align-items:center; gap:10px; padding:4px 0; }
+.live-rid { font-family:var(--mono); font-size:10px; color:var(--cyan); width:38px; flex-shrink:0; }
+.live-conc { font-family:var(--mono); font-size:10px; color:var(--text-dim); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.live-conf { font-family:var(--mono); font-size:10px; font-weight:700; width:36px; text-align:right; flex-shrink:0; }
+.mini-bar { width:60px; height:3px; background:var(--border); border-radius:2px; overflow:hidden; }
+.mini-fill { height:100%; border-radius:2px; transition:width .5s ease; }
+
+/* ═══════════════════════════════════════════════════════════
+   FACTS PANEL
+═══════════════════════════════════════════════════════════ */
+.facts-toggle { font-family:var(--mono); font-size:10px; color:var(--text-muted); cursor:pointer; display:flex; align-items:center; gap:6px; margin:16px 0 8px; text-transform:uppercase; letter-spacing:1px; }
+.facts-toggle:hover { color:var(--cyan); }
+.facts-panel { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px 20px; }
+.facts-title { font-family:var(--mono); font-size:9px; color:var(--text-muted); letter-spacing:3px; text-transform:uppercase; margin-bottom:12px; }
+.fact-row { display:flex; align-items:center; gap:10px; padding:5px 0; border-bottom:1px solid rgba(255,255,255,.03); font-family:var(--mono); font-size:10px; }
+.fact-row:last-child { border-bottom:none; }
+.fdot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+.fdot.yes { background:var(--green); box-shadow:0 0 6px var(--green); }
+.fdot.no  { background:var(--red);   box-shadow:0 0 6px var(--red); }
+.fdot.unk { background:var(--amber); box-shadow:0 0 6px var(--amber); }
+.fact-txt { flex:1; color:var(--text-dim); }
+.fact-val { color:var(--text-muted); }
+
+/* ═══════════════════════════════════════════════════════════
+   RESULTS
+═══════════════════════════════════════════════════════════ */
+.results-section { animation:fadeUp .4s ease; }
+.res-eyebrow { font-family:var(--mono); font-size:10px; color:var(--cyan); letter-spacing:4px; text-transform:uppercase; margin-bottom:8px; opacity:.7; }
+.res-title { font-family:var(--display); font-size:56px; letter-spacing:3px; line-height:1; margin-bottom:8px; }
+.res-meta { font-family:var(--mono); font-size:11px; color:var(--text-muted); margin-bottom:32px; padding-bottom:24px; border-bottom:1px solid var(--border); }
+
+/* Inconsistency panel */
+.inco-panel { background:rgba(245,158,11,.06); border:1px solid rgba(245,158,11,.2); border-radius:10px; padding:16px 20px; margin-bottom:20px; }
+.inco-title { font-family:var(--mono); font-size:10px; color:var(--amber); letter-spacing:2px; text-transform:uppercase; margin-bottom:10px; }
+.inco-list { list-style:none; }
+.inco-list li { font-family:var(--mono); font-size:11px; color:var(--text-dim); padding:3px 0; }
+
+/* Severity chips */
+.sev { font-family:var(--mono); font-size:9px; padding:2px 8px; border-radius:3px; letter-spacing:1px; text-transform:uppercase; margin-left:8px; vertical-align:middle; }
+.sev-critical { background:rgba(255,69,96,.12); color:var(--red); border:1px solid rgba(255,69,96,.25); }
+.sev-high     { background:rgba(255,125,59,.12); color:var(--orange); border:1px solid rgba(255,125,59,.25); }
+.sev-medium   { background:rgba(245,158,11,.12); color:var(--amber); border:1px solid rgba(245,158,11,.25); }
+.sev-low      { background:rgba(16,217,143,.1); color:var(--green); border:1px solid rgba(16,217,143,.2); }
+
+/* Diagnosis card */
+.diag-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; margin-bottom:14px; transition:transform .2s, border-color .2s; }
+.diag-card:hover { transform:translateY(-2px); }
+.diag-card.top { border-color:rgba(0,229,255,.25); box-shadow:0 0 40px rgba(0,229,255,.04); }
+
+.diag-hd { padding:22px 26px; display:flex; align-items:flex-start; justify-content:space-between; gap:16px; cursor:pointer; user-select:none; }
+.diag-rank { font-family:var(--mono); font-size:9px; color:var(--text-muted); letter-spacing:2px; text-transform:uppercase; margin-bottom:6px; display:flex; align-items:center; flex-wrap:wrap; gap:6px; }
+.diag-conc { font-size:17px; font-weight:700; color:var(--text); line-height:1.3; margin-bottom:4px; }
+.diag-cat  { font-family:var(--mono); font-size:10px; color:var(--text-muted); }
+
+.conf-block { text-align:right; flex-shrink:0; }
+.conf-pct { font-family:var(--display); font-size:46px; letter-spacing:1px; line-height:1; }
+.conf-pct.high { color:var(--green); }
+.conf-pct.med  { color:var(--amber); }
+.conf-pct.low  { color:var(--red); }
+.conf-word { font-family:var(--mono); font-size:9px; color:var(--text-muted); text-transform:uppercase; letter-spacing:2px; margin-top:2px; }
+.conf-bar { height:3px; background:var(--border); border-radius:2px; margin-top:10px; width:80px; margin-left:auto; overflow:hidden; }
+.conf-fill { height:100%; border-radius:2px; }
+.fill-high { background:var(--green); }
+.fill-med  { background:var(--amber); }
+.fill-low  { background:var(--red); }
+.chevron { font-size:11px; color:var(--text-muted); margin-top:8px; transition:transform .2s; display:block; text-align:right; }
+.chevron.open { transform:rotate(180deg); }
+
+.diag-body { padding:0 26px 26px; display:none; border-top:1px solid var(--border); }
+.diag-body.open { display:block; }
+
+.sol-block { background:var(--surface2); border-left:3px solid var(--cyan); border-radius:0 8px 8px 0; padding:18px 20px; margin:20px 0 16px; }
+.sol-label { font-family:var(--mono); font-size:9px; color:var(--cyan); text-transform:uppercase; letter-spacing:3px; margin-bottom:10px; }
+.sol-text { font-size:14px; color:var(--text-dim); line-height:1.85; white-space:pre-line; }
+
+.cond-list { margin-top:16px; }
+.cond-label { font-family:var(--mono); font-size:9px; color:var(--text-muted); text-transform:uppercase; letter-spacing:2px; margin-bottom:8px; }
+.cond-item { display:flex; align-items:center; gap:10px; font-family:var(--mono); font-size:10px; color:var(--text-dim); padding:4px 0; }
+.cond-status { flex-shrink:0; font-size:12px; }
+.cond-txt { flex:1; }
+.cond-exp { margin-left:auto; color:var(--text-muted); }
+
+.src-block { margin-top:12px; padding-top:12px; border-top:1px solid var(--border); }
+.src-label { font-family:var(--mono); font-size:9px; color:var(--text-muted); text-transform:uppercase; letter-spacing:2px; margin-bottom:6px; }
+.src-item { font-family:var(--mono); font-size:9px; color:var(--text-muted); padding:2px 0; }
+.src-item::before { content:'↳ '; color:var(--purple); }
+
+/* No results */
+.no-results { background:var(--surface); border:1px dashed var(--border2); border-radius:12px; padding:60px 32px; text-align:center; }
+.no-icon { font-size:48px; margin-bottom:16px; }
+.no-title { font-family:var(--display); font-size:32px; letter-spacing:2px; margin-bottom:12px; }
+.no-txt { font-family:var(--mono); font-size:12px; color:var(--text-muted); max-width:420px; margin:0 auto 28px; line-height:1.8; }
+
+/* ═══════════════════════════════════════════════════════════
+   RULE MANAGER
+═══════════════════════════════════════════════════════════ */
+.section-toggle { font-family:var(--mono); font-size:10px; color:var(--text-muted); cursor:pointer; display:flex; align-items:center; gap:8px; text-transform:uppercase; letter-spacing:1px; margin-top:32px; padding:10px 0; border-top:1px solid var(--border); }
+.section-toggle:hover { color:var(--cyan); }
+.rule-mgr { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:22px; margin-top:14px; }
+.rule-mgr-title { font-family:var(--mono); font-size:10px; color:var(--purple); letter-spacing:2px; text-transform:uppercase; margin-bottom:16px; }
+.inp-row { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
+.txt-inp { flex:1; min-width:160px; background:var(--surface2); border:1px solid var(--border2); border-radius:6px; padding:9px 13px; color:var(--text); font-family:var(--mono); font-size:11px; outline:none; transition:border-color .2s; }
+.txt-inp:focus { border-color:var(--cyan); }
+.btn-sm { padding:9px 16px; border-radius:6px; border:1px solid var(--border2); background:var(--surface2); color:var(--text-muted); font-family:var(--mono); font-size:10px; cursor:pointer; transition:all .18s; white-space:nowrap; letter-spacing:1px; text-transform:uppercase; }
+.btn-sm:hover { border-color:var(--purple); color:#a78bfa; }
+.btn-sm.danger:hover { border-color:var(--red); color:var(--red); }
+
+/* ═══════════════════════════════════════════════════════════
+   FOOTER & NOTIF
+═══════════════════════════════════════════════════════════ */
+footer { margin-top:72px; padding-top:24px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; }
+.footer-txt { font-family:var(--mono); font-size:10px; color:var(--text-muted); }
+
+.notif { position:fixed; bottom:28px; right:28px; padding:14px 20px; border-radius:8px; font-family:var(--mono); font-size:11px; font-weight:700; opacity:0; transform:translateY(8px); transition:all .3s; z-index:5000; pointer-events:none; }
+.notif.show { opacity:1; transform:translateY(0); }
+.notif.success { background:rgba(16,217,143,.15); border:1px solid var(--green); color:var(--green); }
+.notif.error   { background:rgba(255,69,96,.15); border:1px solid var(--red); color:var(--red); }
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════════════════════ */
+@media (max-width:600px) {
+  .answer-grid { grid-template-columns:1fr; }
+  .stats-strip { flex-direction:column; }
+  .stat-cell { border-right:none; border-bottom:1px solid var(--border); }
+  .stat-cell:last-child { border-bottom:none; }
+  .cat-bar { gap:6px; }
+}
+</style>
 </head>
 <body>
 <div class="grid-bg"></div>
-<div class="ambient ambient-1"></div>
-<div class="ambient ambient-2"></div>
+<div class="glow glow-1"></div>
+<div class="glow glow-2"></div>
 
 <div class="app">
   <header>
-    <div class="header-inner">
-      <div class="logo-block">
-        <div class="logo-eyebrow">// sys_expert_v2.0 — fondements_ia</div>
-        <div class="logo-title">SYSDIAG</div>
-        <div class="logo-subtitle">Diagnostic de Panne Informatique <span>·</span> FST / Dép. SI <span>·</span> Équipe 4</div>
-      </div>
-      <div class="header-meta">
-        <div class="chip chip-cyan"><div class="dot-blink"></div> Chaînage Avant</div>
-        <div class="chip chip-purple" id="header-badge">— Règles</div>
-        <div class="chip chip-python" style="font-size:9px;">🐍 Pyodide</div>
-      </div>
+    <div>
+      <div class="logo-eyebrow">// sys_expert_v3.0 — ia_fondements</div>
+      <div class="logo-title">SYSDIAG</div>
+      <div class="logo-sub">Diagnostic de Panne Informatique <span>·</span> FST / Dép. SI <span>·</span> Équipe 4</div>
+    </div>
+    <div class="hd-meta">
+      <div class="chip chip-py">🐍 Python · Pyodide WASM</div>
+      <div class="chip chip-cyan"><div class="dot"></div> Chaînage Avant</div>
+      <div class="chip chip-purple" id="hd-badge">— Règles</div>
     </div>
   </header>
 
-  <div id="app-root"></div>
+  <div id="root"></div>
 
   <footer>
-    <div class="footer-text">FST · Fondements de l'IA · Mohamed Lassoued · Équipe 4</div>
-    <div class="footer-right">
-      <div class="chip chip-cyan" id="footer-badge">— règles</div>
+    <div class="footer-txt">FST · Fondements de l'IA · Mohamed Lassoued · Équipe 4</div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="chip chip-py" style="font-size:9px;">🐍 Moteur Python natif</div>
+      <div class="chip chip-cyan" id="ft-badge" style="font-size:9px;">— règles</div>
     </div>
   </footer>
 </div>
 
 <div class="notif" id="notif"></div>
 
-<script src="/main.js"></script>
+<!-- ═══════════════════ JAVASCRIPT ═══════════════════ -->
+<script>
+/* ── State ── */
+let pyodide = null;
+const MIN_ANSWERS = 5;
+const MAX_DIAGNOSES = 5;
+
+const S = {
+  screen:      'loading',   // loading | start | diagnose | results
+  rulesCount:  0,
+  symptomsCount: 0,
+  categories:  [],
+  activeCategory: null,     // filter
+  currentQ:    null,
+  answeredCount: 0,
+  answers:     {},          // sid → {val, question, category}
+  livePreview: [],
+  diagnoses:   [],
+  inconsistencies: [],
+  showFacts:   false,
+  showRuleMgr: false,
+};
+
+/* ── Category colors ── */
+const CAT_COLORS = {
+  'Alimentation':'#f59e0b','Démarrage':'#ef4444','Écran':'#00e5ff',
+  'Performance':'#eab308','Stockage':'#10b981','Système':'#8b5cf6',
+  'Réseau':'#3b82f6','Ventilation':'#06b6d4','Périphériques':'#ec4899',
+  'Audio':'#f97316','Batterie':'#84cc16','Sécurité':'#dc2626',
+};
+
+/* ── Utilities ── */
+function catColor(cat) { return CAT_COLORS[cat] || '#00e5ff'; }
+function updateBadges() {
+  const c = `${S.rulesCount} Règles`;
+  document.getElementById('hd-badge').textContent = c;
+  document.getElementById('ft-badge').textContent = `${S.rulesCount} règles`;
+}
+function render() {
+  updateBadges();
+  const root = document.getElementById('root');
+  if      (S.screen === 'loading')  root.innerHTML = renderLoading();
+  else if (S.screen === 'start')    root.innerHTML = renderStart();
+  else if (S.screen === 'diagnose') root.innerHTML = renderDiagnose();
+  else if (S.screen === 'results')  root.innerHTML = renderResults();
+}
+
+/* ── LOADING ── */
+function renderLoading() {
+  return `<div class="loading-box">
+    <div class="loading-title">🐍 PYTHON</div>
+    <div class="loading-sub">Chargement du moteur d'inférence via <strong>Pyodide / WebAssembly</strong></div>
+    <div class="bar-track"><div class="bar-fill" id="lbar"></div></div>
+    <div class="loading-log" id="llog">Initialisation...</div>
+  </div>`;
+}
+
+/* ── START ── */
+function renderStart() {
+  const catChips = S.categories.map(c => {
+    const active = S.activeCategory === c;
+    return `<div class="cat-chip ${active?'active':''}" onclick="filterCat('${c}')">
+      <div class="cat-dot" style="background:${catColor(c)}"></div>${c}
+    </div>`;
+  }).join('');
+
+  return `<div class="fade-up">
+    <div class="stats-strip">
+      <div class="stat-cell"><div class="stat-num">${S.rulesCount}</div><div class="stat-label">Règles expert</div></div>
+      <div class="stat-cell"><div class="stat-num">${S.symptomsCount}</div><div class="stat-label">Symptômes</div></div>
+      <div class="stat-cell"><div class="stat-num">${S.categories.length}</div><div class="stat-label">Catégories</div></div>
+      <div class="stat-cell"><div class="stat-num">${MAX_DIAGNOSES}</div><div class="stat-label">Max résultats</div></div>
+    </div>
+
+    <div class="intro-card">
+      <div class="intro-label">// À propos du système</div>
+      <div class="intro-text">
+        Ce système expert utilise le <strong>chaînage avant</strong> pour diagnostiquer les pannes informatiques.<br>
+        Les questions suivent un <strong>ordre logique et chronologique</strong> : on ne vous demandera pas l'état du Wi-Fi si votre PC ne démarre pas.<br>
+        Répondez à <strong>au moins ${MIN_ANSWERS} questions</strong> pour débloquer le diagnostic.
+      </div>
+      <div class="py-badge">🐍 Moteur d'inférence : <strong>Python natif</strong> via Pyodide (WASM) — le JS n'orchestre que l'interface.</div>
+    </div>
+
+    <button class="btn-start" onclick="startDiag()">▶ &nbsp; LANCER LE DIAGNOSTIC</button>
+
+    <div class="cat-bar" style="margin-top:4px;margin-bottom:0;">
+      <div class="cat-chip ${!S.activeCategory?'active':''}" onclick="filterCat(null)">Toutes catégories</div>
+      ${catChips}
+    </div>
+
+    <div class="section-toggle" onclick="toggleRuleMgr()">
+      ⚙ Gestionnaire de règles <span style="color:var(--purple)">${S.showRuleMgr?'▲ masquer':'▼ afficher'}</span>
+    </div>
+    ${S.showRuleMgr ? renderRuleMgr() : ''}
+  </div>`;
+}
+
+function filterCat(cat) {
+  S.activeCategory = S.activeCategory === cat ? null : cat;
+  render();
+}
+
+function renderRuleMgr() {
+  let list = '';
+  try {
+    const r = JSON.parse(pyodide.runPython('json.dumps(_engine.rules[:20])'));
+    list = r.map(x => `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:10px;">
+      <span style="color:var(--cyan);width:40px;flex-shrink:0">${x.id}</span>
+      <span style="color:var(--purple);width:90px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${x.category}</span>
+      <span style="color:var(--text-muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${x.conclusion.slice(0,44)}…</span>
+      <span style="color:var(--text-muted)">${Math.round((x.confidence||0)*100)}%</span>
+    </div>`).join('');
+  } catch(e) {}
+
+  return `<div class="rule-mgr">
+    <div class="rule-mgr-title">⚙ Gestion dynamique des règles (Python)</div>
+    <div class="inp-row">
+      <input class="txt-inp" id="del-id" placeholder="ID à supprimer (ex: R01)">
+      <button class="btn-sm danger" onclick="deleteRule()">Supprimer</button>
+    </div>
+    <textarea class="txt-inp" id="new-rule" rows="4" style="width:100%;margin-top:6px;" placeholder='{"id":"R99","category":"Réseau","severity":"medium","conditions":{"pc_lent":true},"conclusion":"...","solution":"...","confidence":0.8}'></textarea>
+    <button class="btn-sm" style="margin-top:8px;" onclick="addRule()">+ Ajouter règle</button>
+    <div style="margin-top:16px;font-family:var(--mono);font-size:9px;color:var(--text-muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Règles actives (20 premières)</div>
+    <div style="max-height:200px;overflow-y:auto;">${list}</div>
+  </div>`;
+}
+
+/* ── DIAGNOSE ── */
+function renderDiagnose() {
+  const q = S.currentQ;
+  if (!q) return '';
+
+  const answered = S.answeredCount;
+  const progress = Math.min((answered / (answered + 8)) * 100, 96);
+  const minOk = answered >= MIN_ANSWERS;
+  const col = catColor(q.category);
+
+  /* Live inference */
+  let liveHtml = '';
+  if (S.livePreview.length > 0 && answered >= 2) {
+    const items = S.livePreview.map(c => {
+      const pct = Math.round(c.confidence * 100);
+      const color = pct >= 80 ? 'var(--green)' : pct >= 60 ? 'var(--amber)' : 'var(--red)';
+      return `<div class="live-item">
+        <span class="live-rid">${c.rule_id}</span>
+        <span class="live-conc">${c.conclusion}</span>
+        <span class="live-conf" style="color:${color}">${pct}%</span>
+        <div class="mini-bar"><div class="mini-fill" style="width:${pct}%;background:${color}"></div></div>
+      </div>`;
+    }).join('');
+    liveHtml = `<div class="live-panel">
+      <div class="live-title"><div class="dot"></div> Hypothèses actives — chaînage avant en temps réel</div>
+      ${items}
+    </div>`;
+  }
+
+  /* Facts panel */
+  let factsHtml = '';
+  if (S.showFacts && Object.keys(S.answers).length > 0) {
+    factsHtml = renderFactsPanel();
+  }
+
+  return `<div class="q-section">
+    <div class="prog-header">
+      <span class="prog-label">// Progression</span>
+      <div class="prog-right">
+        <span class="prog-count">${answered} réponse${answered>1?'s':''}</span>
+        ${answered > 0 ? `<span class="prog-live">↑ ${S.livePreview.length} règle${S.livePreview.length!==1?'s':''}</span>` : ''}
+      </div>
+    </div>
+    <div class="prog-track"><div class="prog-fill" style="width:${progress}%"></div></div>
+
+    ${liveHtml}
+
+    <div class="cat-trail">
+      <div class="trail-dot" style="background:${col}"></div>
+      <span>Catégorie</span>
+      <span style="opacity:.3">/</span>
+      <span style="color:${col}">${q.category || '—'}</span>
+    </div>
+
+    <div class="q-card">
+      <div class="q-num">// SYMPTÔME_${String(answered+1).padStart(3,'0')}</div>
+      <div class="q-text">${q.question}</div>
+      <div class="answer-grid">
+        <button class="ans-btn yes" onclick="answerQ('yes')">
+          <span class="icon">✓</span><span class="lbl">OUI</span>
+        </button>
+        <button class="ans-btn no" onclick="answerQ('no')">
+          <span class="icon">✗</span><span class="lbl">NON</span>
+        </button>
+        <button class="ans-btn unk" onclick="answerQ('unknown')">
+          <span class="icon">?</span><span class="lbl">Je ne sais pas</span>
+        </button>
+      </div>
+    </div>
+
+    ${!minOk ? `<div class="min-warn">ℹ Répondez encore <strong>${MIN_ANSWERS - answered}</strong> question(s) pour activer le bouton "Diagnostiquer".</div>` : ''}
+
+    <div class="nav-row">
+      <button class="btn-nav" onclick="startOver()">↺ Recommencer</button>
+      <button class="btn-diag ${!minOk?'locked':''}" onclick="${minOk?'runDiag()':'showNotif(\"Répondez à au moins '+MIN_ANSWERS+' questions\",\"error\")'} ">
+        Diagnostiquer →
+      </button>
+    </div>
+
+    ${answered > 0 ? `<div class="facts-toggle" onclick="toggleFacts()">
+      📋 Faits collectés (${answered}) <span style="color:var(--purple)">${S.showFacts?'▲':'▼'}</span>
+    </div>${factsHtml}` : ''}
+  </div>`;
+}
+
+function renderFactsPanel() {
+  const rows = Object.entries(S.answers).map(([sid, info]) => {
+    const cls = info.val==='yes'?'yes':info.val==='no'?'no':'unk';
+    const lbl = info.val==='yes'?'OUI':info.val==='no'?'NON':'?';
+    return `<div class="fact-row">
+      <div class="fdot ${cls}"></div>
+      <span class="fact-txt">${info.question}</span>
+      <span class="fact-val">[${lbl}]</span>
+    </div>`;
+  }).join('');
+  return `<div class="facts-panel"><div class="facts-title">// Base de faits</div>${rows}</div>`;
+}
+
+/* ── RESULTS ── */
+function renderResults() {
+  const d = S.diagnoses;
+  const count = S.answeredCount;
+
+  const incPanel = S.inconsistencies.length > 0 ? `<div class="inco-panel">
+    <div class="inco-title">⚠️ Incohérences détectées par le moteur Python</div>
+    <ul class="inco-list">${S.inconsistencies.map(i=>`<li>${i}</li>`).join('')}</ul>
+  </div>` : '';
+
+  if (d.length === 0) {
+    return `<div class="results-section">
+      <div class="res-eyebrow">// résultats</div>
+      <div class="res-title" style="color:var(--red)">AUCUN RÉSULTAT</div>
+      <div class="res-meta">Basé sur ${count} réponses · ${S.rulesCount} règles évaluées</div>
+      ${incPanel}
+      <div class="no-results">
+        <div class="no-icon">🔍</div>
+        <div class="no-title">Pas de Correspondance</div>
+        <div class="no-txt">Les symptômes fournis ne correspondent à aucune règle. Essayez de répondre à plus de questions ou de corriger des réponses contradictoires.</div>
+        <div style="display:flex;gap:12px;justify-content:center;">
+          <button class="btn-nav" onclick="goBack()">← Revenir</button>
+          <button class="btn-nav" onclick="startOver()">↺ Recommencer</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  return `<div class="results-section">
+    <div class="res-eyebrow">// résultats du moteur Python</div>
+    <div class="res-title">${d.length} Diagnostic${d.length>1?'s':''}</div>
+    <div class="res-meta">Basé sur ${count} réponses · ${S.rulesCount} règles évaluées${d.length===MAX_DIAGNOSES?' · Top '+MAX_DIAGNOSES+' affichés':''}</div>
+    ${incPanel}
+    ${d.map((diag,i) => renderDiagCard(diag,i)).join('')}
+    <div style="margin-top:24px;"><button class="btn-nav" onclick="startOver()">↺ Nouveau diagnostic</button></div>
+    ${count > 0 ? `<div class="facts-toggle" onclick="toggleFacts()">
+      📋 Faits collectés (${count}) <span style="color:var(--purple)">${S.showFacts?'▲':'▼'}</span>
+    </div>${S.showFacts?renderFactsPanel():''}` : ''}
+  </div>`;
+}
+
+function renderDiagCard(diag, i) {
+  const pct = Math.round(diag.confidence * 100);
+  const cls = pct>=85?'high':pct>=70?'med':'low';
+  const sevLabel = {critical:'🚨 CRITIQUE',high:'🔴 ÉLEVÉ',medium:'🟡 MOYEN',low:'🟢 FAIBLE'}[diag.severity]||'MOYEN';
+  const sevCls   = `sev sev-${diag.severity||'medium'}`;
+
+  const conds = Object.entries(diag.conditions).map(([sid,expected]) => {
+    const info   = S.answers[sid];
+    const actual = info ? (info.val==='yes'?true:info.val==='no'?false:null) : undefined;
+    const icon   = actual===undefined?'❓':actual===expected?'✅':'❌';
+    const qTxt   = info?.question || sid;
+    return `<div class="cond-item">
+      <span class="cond-status">${icon}</span>
+      <span class="cond-txt">${qTxt}</span>
+      <span class="cond-exp">→ ${expected?'OUI':'NON'}</span>
+    </div>`;
+  }).join('');
+
+  const srcs = diag.sources?.length ? `<div class="src-block">
+    <div class="src-label">Sources</div>
+    ${diag.sources.map(s=>`<div class="src-item">${s}</div>`).join('')}
+  </div>` : '';
+
+  return `<div class="diag-card ${i===0?'top':''}">
+    <div class="diag-hd" onclick="toggleCard('bd-${i}','chv-${i}')">
+      <div>
+        <div class="diag-rank">
+          ${i===0?'🏆 DIAGNOSTIC PRINCIPAL':`#${i+1} DIAGNOSTIC`} · ${diag.rule_id}
+          <span class="${sevCls}">${sevLabel}</span>
+        </div>
+        <div class="diag-conc">${diag.conclusion}</div>
+        <div class="diag-cat">Catégorie : ${diag.category}</div>
+      </div>
+      <div class="conf-block">
+        <div class="conf-pct ${cls}">${pct}%</div>
+        <div class="conf-word">Confiance</div>
+        <div class="conf-bar"><div class="conf-fill fill-${cls}" style="width:${pct}%"></div></div>
+        <span class="chevron ${i===0?'open':''}" id="chv-${i}">▼</span>
+      </div>
+    </div>
+    <div class="diag-body ${i===0?'open':''}" id="bd-${i}">
+      <div class="sol-block">
+        <div class="sol-label">💡 Solution recommandée</div>
+        <div class="sol-text">${diag.solution}</div>
+      </div>
+      <div class="cond-list">
+        <div class="cond-label">Conditions vérifiées par Python</div>
+        ${conds}
+      </div>
+      ${srcs}
+    </div>
+  </div>`;
+}
+
+/* ── ACTIONS ── */
+async function startDiag() {
+  pyodide.runPython('reset_session()');
+  S.answers       = {};
+  S.answeredCount = 0;
+  S.livePreview   = [];
+  S.showFacts     = false;
+  S.screen        = 'diagnose';
+  S.currentQ      = JSON.parse(pyodide.runPython('get_next_question()'));
+  render();
+}
+
+async function answerQ(val) {
+  const q = S.currentQ;
+  if (!q) return;
+
+  S.answers[q.id] = { val, question: q.question, category: q.category };
+  pyodide.runPython(`answer_question('${q.id}', '${val}')`);
+  S.answeredCount = parseInt(pyodide.runPython('get_answers_count()'));
+  S.livePreview   = JSON.parse(pyodide.runPython('get_live_preview()'));
+
+  const next = JSON.parse(pyodide.runPython('get_next_question()'));
+  if (!next) { await runDiag(); return; }
+  S.currentQ = next;
+  render();
+}
+
+async function runDiag() {
+  if (S.answeredCount < MIN_ANSWERS) {
+    showNotif(`Répondez à au moins ${MIN_ANSWERS} questions (${S.answeredCount}/${MIN_ANSWERS})`, 'error');
+    return;
+  }
+  const r = JSON.parse(pyodide.runPython('run_diagnosis()'));
+  if (r.error) { showNotif(r.error, 'error'); return; }
+  S.diagnoses       = r.diagnoses;
+  S.inconsistencies = r.inconsistencies;
+  S.answeredCount   = r.answers_count;
+  S.screen          = 'results';
+  render();
+}
+
+function startOver() { S.screen='start'; S.answers={}; S.answeredCount=0; S.diagnoses=[]; S.livePreview=[]; S.showFacts=false; S.currentQ=null; render(); }
+function goBack()    { S.screen='diagnose'; S.currentQ=JSON.parse(pyodide.runPython('get_next_question()')); render(); }
+function toggleCard(bId, cId) { document.getElementById(bId)?.classList.toggle('open'); document.getElementById(cId)?.classList.toggle('open'); }
+function toggleFacts()   { S.showFacts=!S.showFacts; render(); }
+function toggleRuleMgr() { S.showRuleMgr=!S.showRuleMgr; render(); }
+
+function addRule() {
+  const raw = document.getElementById('new-rule')?.value.trim();
+  if (!raw) return;
+  try {
+    JSON.parse(raw);
+    const esc = raw.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    const res = JSON.parse(pyodide.runPython(`add_rule_py('${esc}')`));
+    if (res.error) { showNotif('Erreur: '+res.error,'error'); return; }
+    S.rulesCount = res.count;
+    document.getElementById('new-rule').value='';
+    showNotif('Règle ajoutée','success');
+    render();
+  } catch(e) { showNotif('JSON invalide: '+e.message,'error'); }
+}
+
+function deleteRule() {
+  const id = document.getElementById('del-id')?.value.trim().toUpperCase();
+  if (!id) return;
+  const res = JSON.parse(pyodide.runPython(`delete_rule_py('${id}')`));
+  if (res.error) { showNotif(res.error,'error'); return; }
+  S.rulesCount = res.count;
+  document.getElementById('del-id').value='';
+  showNotif(`Règle ${id} supprimée`,'success');
+  render();
+}
+
+function showNotif(msg, type) {
+  const n = document.getElementById('notif');
+  n.textContent = msg; n.className = `notif ${type} show`;
+  setTimeout(() => n.classList.remove('show'), 3200);
+}
+
+/* ── PYODIDE BOOT ── */
+function setBar(pct, msg) {
+  const b = document.getElementById('lbar');
+  const l = document.getElementById('llog');
+  if (b) b.style.width = pct + '%';
+  if (l) l.textContent = '> ' + msg;
+}
+
+async function boot() {
+  render(); // show loading screen first
+  try {
+    setBar(8, 'Chargement de Pyodide (WebAssembly)…');
+    pyodide = await loadPyodide({ indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.25.0/full/' });
+
+    setBar(25, 'Chargement du moteur Python (engine.py)…');
+    const pyResp = await fetch('./py/engine.py');
+    if (!pyResp.ok) throw new Error('py/engine.py introuvable');
+    await pyodide.runPythonAsync(await pyResp.text());
+
+    setBar(45, 'Chargement des règles…');
+    const rulesJson = await (await fetch('./data/rules.json')).text();
+
+    setBar(60, 'Chargement des questions…');
+    const questionsJson = await (await fetch('./data/questions.json')).text();
+
+    setBar(75, 'Chargement du flux d\'interview…');
+    const flowJson = await (await fetch('./data/interview_flow.json')).text();
+
+    setBar(85, 'Chargement des conditions…');
+    const condJson = await (await fetch('./data/conditions.json')).text();
+
+    setBar(92, 'Initialisation du moteur…');
+    const escape = s => s.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    const result = JSON.parse(pyodide.runPython(
+      `load_data('${escape(rulesJson)}','${escape(questionsJson)}','${escape(flowJson)}','${escape(condJson)}')`
+    ));
+
+    S.rulesCount    = result.rules_count;
+    S.symptomsCount = result.symptoms_count;
+    S.categories    = result.categories;
+
+    await new Promise(r => setTimeout(r, 300));
+    setBar(100, 'Système prêt.');
+    await new Promise(r => setTimeout(r, 350));
+
+    S.screen = 'start';
+    render();
+  } catch(e) {
+    document.getElementById('root').innerHTML = `
+      <div style="text-align:center;padding:60px;background:var(--surface);border:1px solid var(--border);border-radius:12px;">
+        <div style="font-size:48px;margin-bottom:16px;">❌</div>
+        <div style="font-family:var(--display);font-size:32px;letter-spacing:2px;color:var(--red);margin-bottom:12px;">ERREUR</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--text-muted);line-height:2;">
+          ${e.message}<br><br>
+          Vérifiez que <strong>py/engine.py</strong>, <strong>data/rules.json</strong>,<br>
+          <strong>data/questions.json</strong>, <strong>data/interview_flow.json</strong>, <strong>data/conditions.json</strong> existent.<br><br>
+          <span style="color:var(--amber);">Lancez un serveur local : python3 -m http.server 8000</span>
+        </div>
+      </div>`;
+  }
+}
+
+boot();
+</script>
 </body>
 </html>

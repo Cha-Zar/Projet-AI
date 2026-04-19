@@ -855,12 +855,15 @@ async function boot() {
 
     setBar(85, 'Chargement des conditions…');
     const condJson = await (await fetch('./data/conditions.json')).text();
-
-    setBar(92, 'Initialisation du moteur…');
-    const escape = s => s.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    const result = JSON.parse(pyodide.runPython(
-      `load_data('${escape(rulesJson)}','${escape(questionsJson)}','${escape(flowJson)}','${escape(condJson)}')`
-    ));
+setBar(92, 'Initialisation du moteur…');
+// Pass JSON as Python globals to avoid string escaping issues
+pyodide.globals.set('_rules_json_str',     rulesJson);
+pyodide.globals.set('_questions_json_str', questionsJson);
+pyodide.globals.set('_flow_json_str',      flowJson);
+pyodide.globals.set('_cond_json_str',      condJson);
+const result = JSON.parse(pyodide.runPython(
+  `load_data(_rules_json_str, _questions_json_str, _flow_json_str, _cond_json_str)`
+));
 
     S.rulesCount    = result.rules_count;
     S.symptomsCount = result.symptoms_count;

@@ -9,42 +9,62 @@
     {
       "id": "INC001",
       "if": {"pc_ne_demarre_pas": true, "pc_fonctionne": true},
-      "message": "⚠️ Incohérence : vous avez indiqué que le PC ne démarre pas, mais qu'il semble fonctionner."
+      "message": "Incohérence : vous avez indiqué que le PC ne démarre pas, mais qu'il semble fonctionner."
     },
     {
       "id": "INC002",
       "if": {"ecran_noir": true, "artefacts_visuels": true},
-      "message": "⚠️ Incohérence : un écran totalement noir et des artefacts visibles ne peuvent pas coexister."
+      "message": "Incohérence : un écran totalement noir et des artefacts visibles ne peuvent pas coexister."
     },
     {
       "id": "INC003",
       "if": {"pas_internet": true, "internet_lent": true},
-      "message": "⚠️ Incohérence : 'pas d'Internet du tout' et 'Internet lent' décrivent deux états différents."
+      "message": "Incohérence : pas d'Internet du tout et Internet lent decrivent deux etats differents."
     },
     {
       "id": "INC004",
       "if": {"pc_ne_demarre_pas": true, "pas_internet": true},
-      "message": "⚠️ Incohérence : un PC qui ne démarre pas ne peut pas avoir un problème Internet en même temps."
+      "message": "Incohérence : un PC qui ne démarre pas ne peut pas avoir un problème Internet en même temps."
     },
     {
       "id": "INC005",
       "if": {"pc_ne_demarre_pas": true, "pc_lent": true},
-      "message": "⚠️ Incohérence : si le PC ne démarre pas du tout, la lenteur n'est pas le problème principal."
+      "message": "Incohérence : si le PC ne démarre pas du tout, la lenteur n'est pas le problème principal."
     },
     {
       "id": "INC006",
       "if": {"pc_ne_demarre_pas": true, "ecran_bleu_bsod": true},
-      "message": "⚠️ Incohérence : un écran bleu (BSOD) suppose que le système a démarré partiellement."
+      "message": "Incohérence : un écran bleu (BSOD) suppose que le système a démarré partiellement."
     },
     {
       "id": "INC007",
       "if": {"bruits_cliquetis": true, "ssd_utilise": true},
-      "message": "ℹ️ Note : les SSD ne font pas de bruit mécanique — vérifiez que le bruit vient bien du disque."
+      "message": "Note : les SSD ne font pas de bruit mécanique — vérifiez que le bruit vient bien du disque."
     },
     {
       "id": "INC008",
       "if": {"surchauffe": true, "bruit_ventilateur_fort": false},
-      "message": "⚠️ Incohérence : surchauffe signalée mais ventilateurs silencieux — un ventilateur défaillant est probable."
+      "message": "Incohérence : surchauffe signalée mais ventilateurs silencieux — un ventilateur défaillant est probable."
+    },
+    {
+      "id": "INC009",
+      "if": {"pc_ne_demarre_pas": true, "ecran_noir": true},
+      "message": "Incohérence : PC ne démarre pas du tout et écran noir mais PC allumé sont deux pannes différentes — vérifiez lequel décrit mieux votre situation."
+    },
+    {
+      "id": "INC010",
+      "if": {"pc_ne_demarre_pas": true, "pc_s_eteint_seul": true},
+      "message": "Incohérence : un PC qui ne démarre pas du tout ne peut pas aussi s'éteindre en cours d'utilisation."
+    },
+    {
+      "id": "INC011",
+      "if": {"pc_ne_demarre_pas": true, "erreurs_demarrage": true},
+      "message": "Incohérence : des messages d'erreur au démarrage supposent que le PC démarre partiellement — ce qui contredit aucune réaction au bouton marche."
+    },
+    {
+      "id": "INC012",
+      "if": {"ecran_noir": true, "pc_fonctionne": false},
+      "message": "Incohérence : écran noir et PC qui ne fonctionne pas (aucun son, aucun ventilateur) indique une panne d'alimentation, pas un problème d'affichage."
     }
   ]
 }

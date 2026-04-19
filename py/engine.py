@@ -39,38 +39,53 @@ class InferenceEngine:
 
     def __init__(self, rules, questions_map, screening_order,
                  question_triggers, inconsistency_rules, contradictions):
-        self.rules              = rules
-        self.questions_map      = questions_map      # id → {id, question, category}
-        self.screening_order    = screening_order    # racines ordonnées
-        self.question_triggers  = question_triggers  # id → [{question, value}, ...]
-        self.inconsistency_rules = inconsistency_rules  # [{if:{}, message}]
-        self.contradictions      = contradictions        # [{conditions:{}, message}]
-        # Dans __init__, après les autres attributs :
+        self.rules               = rules
+        self.questions_map       = questions_map
+        self.screening_order     = screening_order
+        self.question_triggers   = question_triggers
+        self.inconsistency_rules = inconsistency_rules
+        self.contradictions      = contradictions
+
+        # ── Blocage conditionnel : si condition=True → ignorer ces questions ──
         self.skip_if = {
             "pc_ne_demarre_pas": [
+                # Réseau — impossible si le PC ne démarre pas
                 "pas_internet", "internet_lent", "connexion_coupe_regulierement",
+                "wifi_connecte", "signal_wifi_visible", "autres_appareils_fonctionnent",
+                "loin_du_routeur", "beaucoup_appareils_connectes", "fai_probleme",
+                # Audio/périphériques — nécessitent Windows actif
                 "pas_de_son", "clavier_ne_fonctionne_pas", "souris_ne_fonctionne_pas",
                 "usb_non_detecte", "imprimante_ne_fonctionne_pas",
                 "batterie_ne_charge_pas", "batterie_se_decharge_vite",
+                # Performance/système — nécessitent un OS chargé
                 "pc_lent", "pc_gele", "ecran_bleu_bsod",
                 "jeux_lents", "applications_ne_s_ouvrent_pas",
                 "bureau_ne_s_affiche_pas", "mises_a_jour_echouent",
+                # Extinction spontanée ≠ ne démarre pas du tout
+                "pc_s_eteint_seul",
+                # Messages démarrage impossibles si rien ne s'allume
+                "erreurs_demarrage", "windows_ne_demarre_pas",
+                "message_boot_device_not_found", "pc_redemarre_en_boucle",
+                "apres_mise_a_jour", "message_erreur_demarrage_specific",
             ],
             "ecran_noir": [
-                "ecran_pixelise", "ecran_scintille", "artefacts_visuels",
+                # Écran totalement noir exclut tout contenu visuel
+                "ecran_pixelise", "artefacts_visuels",
             ],
             "pas_internet": [
+                # Pas internet et lent sont mutuellement exclusifs
                 "internet_lent", "connexion_coupe_regulierement",
             ],
         }
+
     # ── Évaluation d'une règle ────────────────────────────────────────────────
 
     def _eval_rule(self, rule: dict, fb: FactBase):
         """Retourne (match: bool, confidence: float)"""
-        conditions   = rule.get("conditions", {})
-        known_ok     = 0
-        unknown_cnt  = 0
-        base_conf    = rule.get("confidence", 0.8)
+        conditions  = rule.get("conditions", {})
+        known_ok    = 0
+        unknown_cnt = 0
+        base_conf   = rule.get("confidence", 0.8)
 
         for sid, expected in conditions.items():
             val = fb.get(sid)
@@ -92,36 +107,37 @@ class InferenceEngine:
     # ── Sélection de la prochaine question ────────────────────────────────────
 
     def next_question(self, fb: FactBase) -> dict | None:
-            answered = set(fb.facts.keys())
+        answered = set(fb.facts.keys())
 
-            # Calcule les questions à ignorer selon les faits actuels
-            blocked = set()
-            for condition_sid, skip_list in self.skip_if.items():
-                if fb.get(condition_sid) == True:
-                    blocked.update(skip_list)
+        # Calcule les questions à ignorer selon les faits actuels
+        blocked = set()
+        for condition_sid, skip_list in self.skip_if.items():
+            if fb.get(condition_sid) == True:
+                blocked.update(skip_list)
 
-            # 1. Questions déclenchées par les réponses actuelles (dépendances)
-            triggered = []
-            for qid, triggers in self.question_triggers.items():
-                if qid in answered or qid in blocked:   # ← ajout du check blocked
-                    continue
-                for t in triggers:
-                    if fb.get(t["question"]) == t["value"]:
-                        triggered.append(qid)
-                        break
+        # 1. Questions déclenchées par les réponses actuelles (dépendances)
+        triggered = []
+        for qid, triggers in self.question_triggers.items():
+            if qid in answered or qid in blocked:
+                continue
+            for t in triggers:
+                if fb.get(t["question"]) == t["value"]:
+                    triggered.append(qid)
+                    break
 
-            if triggered:
-                scored = sorted(triggered, key=lambda q: self._rule_coverage(q), reverse=True)
-                for qid in scored:
-                    if qid in self.questions_map:
-                        return self.questions_map[qid]
-
-            # 2. Fallback : screening racine dans l'ordre prévu
-            for qid in self.screening_order:
-                if qid not in answered and qid in self.questions_map and qid not in blocked:  # ← ajout
+        if triggered:
+            scored = sorted(triggered, key=lambda q: self._rule_coverage(q), reverse=True)
+            for qid in scored:
+                if qid in self.questions_map:
                     return self.questions_map[qid]
 
-            return None
+        # 2. Fallback : screening racine dans l'ordre prévu
+        for qid in self.screening_order:
+            if qid not in answered and qid in self.questions_map and qid not in blocked:
+                return self.questions_map[qid]
+
+        return None
+
     def _rule_coverage(self, qid: str) -> int:
         return sum(1 for r in self.rules if qid in r.get("conditions", {}))
 
@@ -192,39 +208,38 @@ def load_data(rules_json: str, questions_json: str,
     """Charge toutes les données et initialise le moteur."""
     global _engine, _rules_raw
 
-    rules_data     = json.loads(rules_json)
-    questions_data = json.loads(questions_json)
-    flow_data      = json.loads(flow_json)
+    rules_data      = json.loads(rules_json)
+    questions_data  = json.loads(questions_json)
+    flow_data       = json.loads(flow_json)
     conditions_data = json.loads(conditions_json)
 
     _rules_raw = rules_data.get("rules", rules_data if isinstance(rules_data, list) else [])
 
-    # Questions : supporte les deux formats (list directe ou {symptom_questions: []})
     raw_q = questions_data.get("symptom_questions", questions_data if isinstance(questions_data, list) else [])
     questions_map = {q["id"]: q for q in raw_q}
 
-    screening_order    = flow_data.get("screening_order", [])
-    question_triggers  = flow_data.get("question_triggers", {})
-    contradictions     = flow_data.get("contradictions", [])
+    screening_order     = flow_data.get("screening_order", [])
+    question_triggers   = flow_data.get("question_triggers", {})
+    contradictions      = flow_data.get("contradictions", [])
     inconsistency_rules = conditions_data.get("inconsistency_rules", [])
 
     _engine = InferenceEngine(
-        rules              = _rules_raw,
-        questions_map      = questions_map,
-        screening_order    = screening_order,
-        question_triggers  = question_triggers,
+        rules               = _rules_raw,
+        questions_map       = questions_map,
+        screening_order     = screening_order,
+        question_triggers   = question_triggers,
         inconsistency_rules = inconsistency_rules,
-        contradictions     = contradictions,
+        contradictions      = contradictions,
     )
 
     categories = sorted({r.get("category", "") for r in _rules_raw if r.get("category")})
 
     return json.dumps({
-        "rules_count":     len(_rules_raw),
-        "symptoms_count":  len(questions_map),
-        "categories":      categories,
-        "min_answers":     MIN_ANSWERS,
-        "max_diagnoses":   MAX_DIAGNOSES,
+        "rules_count":    len(_rules_raw),
+        "symptoms_count": len(questions_map),
+        "categories":     categories,
+        "min_answers":    MIN_ANSWERS,
+        "max_diagnoses":  MAX_DIAGNOSES,
     })
 
 
@@ -234,9 +249,16 @@ def reset_session() -> str:
 
 
 def answer_question(sid: str, val_str: str) -> str:
+    """
+    Enregistre la réponse ET vérifie immédiatement les contradictions.
+    Retourne JSON {"status":"ok","warnings":[...]} pour alerter le JS en temps réel.
+    """
     val = True if val_str == "yes" else (False if val_str == "no" else None)
     _fb.set(sid, val)
-    return "ok"
+
+    # Vérification immédiate — pas seulement en fin de session
+    warnings = _engine.detect_inconsistencies(_fb) if _engine else []
+    return json.dumps({"status": "ok", "warnings": warnings})
 
 
 def get_next_question() -> str:
@@ -263,9 +285,9 @@ def run_diagnosis() -> str:
         results         = _engine.run(_fb)
         inconsistencies = _engine.detect_inconsistencies(_fb)
         return json.dumps({
-            "diagnoses":      results,
+            "diagnoses":       results,
             "inconsistencies": inconsistencies,
-            "answers_count":  _fb.answered(),
+            "answers_count":   _fb.answered(),
         })
     except ValueError as e:
         return json.dumps({"error": str(e)})
